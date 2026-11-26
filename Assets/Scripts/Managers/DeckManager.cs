@@ -138,7 +138,88 @@ namespace ALWTTT.Managers
         /// Único punto de lectura del tope (antes, seis lecturas directas del asset).</summary>
         public int MaxHandSize => ALWTTT.Data.DevTuning.HandMax(GameManager.GameplayData.MaxCardsOnHand);
 
+        // ---- [S10] Draw log: one line per batch (turn start, refill, effect, script) ----
+        /// <summary>[S10] Optional reason for the next DrawCards batch (set by the caller).</summary>
+        public static string NextDrawReason;
+        private int _drawLogDepth;
+        private readonly List<CardDefinition> _drawLogBefore = new List<CardDefinition>();
+
+        private void BeginDrawLog()
+        {
+            if (_drawLogDepth++ != 0) return;
+            _drawLogBefore.Clear();
+            _drawLogBefore.AddRange(HandPile);
+        }
+
+        private void EndDrawLog(string label)
+        {
+            if (--_drawLogDepth != 0) return;
+            var added = new List<CardDefinition>(HandPile);
+            foreach (var c in _drawLogBefore) added.Remove(c);
+            NextDrawReason = null;
+            Debug.Log($"[S10][CARTAS] robo · {label}: {(added.Count == 0 ? "nada" : CardNames(added))} " +
+                      $"| mano ({HandPile.Count}): {CardNames(HandPile)} | mazo {DrawPile.Count} · descarte {DiscardPile.Count}");
+        }
+
+        public static string CardNames(IEnumerable<CardDefinition> cards)
+        {
+            var names = new List<string>();
+            foreach (var c in cards)
+                if (c != null) names.Add(ALWTTT.Tooltips.GameText.CardName(c) +
+                    (c.IsFinisher ? " [remate]" : c.IsComposition ? " [comp]" : " [hab]"));
+            return names.Count == 0 ? "-" : string.Join(", ", names);
+        }
+
+        /// <summary>[S10] Refill draws (draw on Play, draw per loop). In the minimal tutorial:
+        /// none during the first song, compositions only afterwards.</summary>
+        public void DrawRefill(int n, string label)
+        {
+            if (n <= 0) return;
+            if (ALWTTT.Tutorial.TutorialScriptedDrawQueue.ScriptOnly)
+            {
+                if (ALWTTT.Tutorial.TutorialScriptedDrawQueue.SuppressRefills)
+                {
+                    Debug.Log($"[S10][CARTAS] robo · {label}: omitido (tutorial, primera canción)");
+                    return;
+                }
+                int capSet = ALWTTT.Tutorial.TutorialScriptedDrawQueue.RefillHandCap;
+                int cap = capSet > 0 ? Mathf.Min(MaxHandSize, capSet) : MaxHandSize;
+                BeginDrawLog();
+                try
+                {
+                    for (int i = 0; i < n && HandPile.Count < cap; i++)
+                        if (!DrawCardFiltered(c => c.IsComposition && !c.IsFinisher, "TUT refill")) break;
+                }
+                finally { EndDrawLog(label + $" (solo composiciones, tope {cap})"); }
+                return;
+            }
+            NextDrawReason = label;
+            DrawCards(n);
+        }
+
         public void DrawCards(int targetDrawCount)
+        {
+            // [S10] Minimal tutorial: a draw outside the script (a card effect, e.g. Static Rush)
+            // brings compositions only. Abilities and status cards arrive only when the tutorial
+            // introduces them (turn 2 / turn 3), never earlier by chance.
+            if (ALWTTT.Tutorial.TutorialScriptedDrawQueue.ScriptOnly && targetDrawCount > 0)
+            {
+                string label = NextDrawReason ?? "robo extra (efecto de carta)";
+                BeginDrawLog();
+                try
+                {
+                    for (int i = 0; i < targetDrawCount && HandPile.Count < MaxHandSize; i++)
+                        if (!DrawCardFiltered(c => c.IsComposition && !c.IsFinisher, "TUT efecto")) break;
+                }
+                finally { EndDrawLog(label + " (tutorial: solo composiciones)"); }
+                return;
+            }
+            BeginDrawLog();
+            try { DrawCardsCore(targetDrawCount); }
+            finally { EndDrawLog(NextDrawReason ?? "robo extra (efecto de carta)"); }
+        }
+
+        private void DrawCardsCore(int targetDrawCount)
         {
             if (targetDrawCount <= 0)
             {
@@ -262,6 +343,13 @@ namespace ALWTTT.Managers
             HandController.Hand.Clear();
         }
 
+        private int CountComposable()
+        {
+            int n = 0;
+            foreach (var c in HandPile) if (c != null && c.IsComposition && !c.IsFinisher) n++;
+            return n;
+        }
+
         public void OnCardPlayed(CardBase targetCard)
         {
             //LogV($"{DebugTag} On Card Played...");
@@ -287,6 +375,11 @@ namespace ALWTTT.Managers
             {
                 targetCard.Discard();
             }
+
+            // [S10] One line per play, next to the draw batches.
+            if (playedDef != null)
+                Debug.Log($"[S10][CARTAS] jugada: {CardNames(new[] { playedDef })} " +
+                          $"| mano ({HandPile.Count}): {CardNames(HandPile)}");
 
             // TODO: UpdateCardText for all other cards
             // Ex. when +STR increase DMG for all cards
@@ -655,6 +748,27 @@ namespace ALWTTT.Managers
                 UIManager.GigCanvas.SetPileTexts();
         }
 
+        /// <summary>[S10] Tutorial: the scripted cards (Spotlight, Wink) must fit. A full hand
+        /// discards its last compositions first (smoke 25-nov: 8/8 hand, script drew nothing).</summary>
+        private void MakeRoomForScript(int maxHand)
+        {
+            int need = ALWTTT.Tutorial.TutorialScriptedDrawQueue.Count;
+            int excess = HandPile.Count + need - maxHand;
+            if (need <= 0 || excess <= 0 || HandController == null || HandController.Hand == null) return;
+            var gone = new List<CardDefinition>();
+            for (int i = HandController.Hand.Count - 1; i >= 0 && gone.Count < excess; i--)
+            {
+                var card = HandController.Hand[i];
+                var def = card != null ? card.CardDefinition : null;
+                if (def == null || !def.IsComposition || def.IsFinisher) continue;
+                gone.Add(def);
+                card.Discard();
+                HandController.Hand.RemoveAt(i);
+            }
+            if (UIManager != null && UIManager.GigCanvas != null) UIManager.GigCanvas.SetPileTexts();
+            Debug.Log($"[S10][CARTAS] descarte para hacer sitio al guion ({need}): {CardNames(gone)}");
+        }
+
         public void OnCardDiscarded(CardBase targetCard)
         {
             HandPile.Remove(targetCard.CardDefinition);
@@ -743,6 +857,13 @@ namespace ALWTTT.Managers
         /// </summary>
         public void DrawCardsForPlayerTurn(int budget)
         {
+            BeginDrawLog();
+            try { DrawCardsForPlayerTurnCore(budget); }
+            finally { EndDrawLog("inicio de turno"); }
+        }
+
+        private void DrawCardsForPlayerTurnCore(int budget)
+        {
             if (HandController == null)
             {
                 Debug.LogError($"{DebugTag} [M4.5] HandController null; falling back to DrawCards.");
@@ -770,7 +891,10 @@ namespace ALWTTT.Managers
             // fallback. needComp/needAction are evaluated AFTER this block, so
             // guarantees never double-draw a domain a scripted entry covered.
             int scriptedDrawn = 0;
-            while (effectiveBudget - scriptedDrawn > 0 &&
+            // [S10] Tutorial: the script is not capped by the turn budget, only by the hand.
+            bool tut = ALWTTT.Tutorial.TutorialScriptedDrawQueue.ScriptOnly;
+            if (tut) MakeRoomForScript(maxHand);
+            while ((tut ? HandPile.Count < maxHand : effectiveBudget - scriptedDrawn > 0) &&
                    ALWTTT.Tutorial.TutorialScriptedDrawQueue.TryDequeue(out var scripted))
             {
                 bool ok = DrawCardFiltered(scripted.Primary, $"TUT Scripted:{scripted.Label}");
@@ -779,6 +903,23 @@ namespace ALWTTT.Managers
                 if (ok) scriptedDrawn++;
                 else LogV($"{DebugTag} [TUT-R2] Scripted entry '{scripted.Label}' " +
                                "missed both stages — slot falls through to normal draw (D1).");
+            }
+
+            // [S10 / D11=A] Minimal tutorial: the script is the whole draw.
+            if (tut)
+            {
+                // [S10] Then compositions until the hand holds FillCompositionsTo of them: a
+                // hand without compositions cannot build a song (soft lock, smoke 24-nov).
+                int target = ALWTTT.Tutorial.TutorialScriptedDrawQueue.FillCompositionsTo;
+                int filled = 0;
+                while (target > 0 && HandPile.Count < maxHand && CountComposable() < target)
+                {
+                    if (!DrawCardFiltered(c => c.IsComposition && !c.IsFinisher, "TUT relleno")) break;
+                    filled++;
+                }
+                _lastTurnGuaranteeSummary = $"tutorial: guion {scriptedDrawn} + composiciones {filled}";
+                Debug.Log($"[S10][TUT] robo del turno: guion {scriptedDrawn} + composiciones {filled} (objetivo {target})");
+                return;
             }
 
 #if ALWTTT_DEV
@@ -852,6 +993,13 @@ namespace ALWTTT.Managers
         /// (HandController, MaxCardsOnHand) block the draw.
         /// </summary>
         public bool DrawCardFiltered(Func<CardDefinition, bool> predicate, string reasonTag = null)
+        {
+            BeginDrawLog();
+            try { return DrawCardFilteredCore(predicate, reasonTag); }
+            finally { EndDrawLog(string.IsNullOrEmpty(reasonTag) ? "robo filtrado" : reasonTag); }
+        }
+
+        private bool DrawCardFilteredCore(Func<CardDefinition, bool> predicate, string reasonTag)
         {
             if (predicate == null) return false;
 

@@ -18,10 +18,10 @@ MonoBehaviour:
   revisitTitle: "Inspiraci\xF3n"
   portrait: {fileID: 0}
   pages:
-  - "\xBFVes ese +{$inspiration_per_loop}? Cada loop te da {$inspiration_per_loop}
-    de Inspiraci\xF3n. Algunas cartas la exigen para jugarse. Las buenas, claro.
-    Gu\xE1rdala: te acaba de llegar a la mano una que la vale."
+  - "Cada composici\xF3n que juegas carga <link=inspiration>Inspiraci\xF3n</link>
+    (<link=inspiration><sprite=\"brillo\" index=0></link>). Gu\xE1rdala: los remates
+    la gastan en el \xFAltimo loop."
   highlightKey: inspiration_counter
-  mechanicText: "La <link=inspiration>Inspiraci\xF3n</link> paga las cartas: {$inspiration_per_loop}
-    por <link=loop>loop</link>, concedida al final del loop. Una carta con coste
-    lo muestra y lo exige. Sin coste, gratis."
+  mechanicText: "Cada composici\xF3n que juegas carga <link=inspiration>Inspiraci\xF3n</link>
+    (<link=inspiration><sprite=\"brillo\" index=0></link>). Gu\xE1rdala: los remates
+    la gastan en el \xFAltimo loop."

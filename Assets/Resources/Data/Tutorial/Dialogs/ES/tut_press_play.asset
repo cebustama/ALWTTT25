@@ -18,10 +18,8 @@ MonoBehaviour:
   revisitTitle: Presiona Play
   portrait: {fileID: 0}
   pages:
-  - "Ahora dale al Play. La canci\xF3n sonar\xE1 en bucle, y todo lo que juegues
-    desde ahora entra en vivo. Sin ensayo. As\xED se toca de verdad."
+  - "Dale al Play. La canci\xF3n suena en bucle: cada vuelta es un <link=loop>loop</link>
+    y un turno tuyo. Lo que juegues desde ahora entra en vivo."
   highlightKey: play_button
-  mechanicText: "<link=play>Play</link> inicia la canci\xF3n. Antes de Play hay un
-    \xFAnico <link=period>periodo de preparaci\xF3n</link>. Tras Play la canci\xF3n
-    suena en <link=loop>loops</link>; las cartas jugadas entonces surten efecto sin
-    detenerla."
+  mechanicText: "Dale al Play. La canci\xF3n suena en bucle: cada vuelta es un <link=loop>loop</link>
+    y un turno tuyo. Lo que juegues desde ahora entra en vivo."

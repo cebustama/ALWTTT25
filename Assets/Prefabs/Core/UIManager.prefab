@@ -3354,7 +3354,12 @@ MonoBehaviour:
   confirmPanel: {fileID: 7585439909423281685}
   options: {fileID: 1887282420091903762}
   feedbackPanel: {fileID: 7627361687609679007}
-  logPause: 1
+  pauseSfx: {fileID: 8300000, guid: 7767a8204214601479bb64e546795f78, type: 3}
+  resumeSfx: {fileID: 8300000, guid: a132095e4221a6341a926014a9e7b275, type: 3}
+  pauseSfxVolume: 0.25
+  pauseSfxLowPassHz: 1800
+  pauseSfxPitch: 2
+  logPause: 0
 --- !u!1 &6123175621297512557
 GameObject:
   m_ObjectHideFlags: 0

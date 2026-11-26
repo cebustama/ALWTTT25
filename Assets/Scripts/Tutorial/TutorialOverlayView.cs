@@ -114,6 +114,10 @@ namespace ALWTTT.Tutorial
 
         public bool IsShowing { get; private set; }
 
+        /// <summary>[S10] A tutorial dialog is on screen: the characters under it keep
+        /// their hover tooltips quiet (playtest 25-nov).</summary>
+        public static bool AnyShowing { get; private set; }
+
         // ---- [TXT-2] Concept tags: resolver handed over by the controller (language-bound) ----
         private ConceptTooltipResolver _concepts;      // null until SetConceptSources: tags render plain
         private Canvas _canvas;
@@ -170,6 +174,7 @@ namespace ALWTTT.Tutorial
 
         private void OnDestroy()
         {
+            if (IsShowing) AnyShowing = false;   // [S10] never leak into the next scene
             if (skipButton != null) skipButton.onClick.RemoveListener(CompleteNow);
             if (_matInstance != null) Destroy(_matInstance);
         }
@@ -198,8 +203,18 @@ namespace ALWTTT.Tutorial
                 _pages[i] = ConceptTagRenderer.Decorate(resolved, _concepts, conceptColor, conceptUnderline, WarnUnknownConcept);
             }
 
+            // [S10] GigCanvas carries an m_IsActive=0 override on this object (since COH-1), so
+            // the first Show found it inactive: no coroutine, no visible modal, yet IsShowing
+            // gated the cards. Activating here runs Awake (material + hidden group) first.
+            if (!gameObject.activeSelf)
+            {
+                gameObject.SetActive(true);
+                Debug.Log("[S10] TutorialOverlay estaba inactivo en GigCanvas: activado al mostrar.");
+            }
+
             _pageIndex = 0;
             IsShowing = true;
+            AnyShowing = true;
 
             SetGroupVisible(true);
 
@@ -230,6 +245,8 @@ namespace ALWTTT.Tutorial
         public void Hide()
         {
             IsShowing = false;
+            AnyShowing = false;
+            TutorialTracksOutline.Hide();   // [S10]
             ClearConceptHover();                            // [TXT-2] never leave a word tooltip behind the closed modal
             if (_typeRoutine != null) { StopCoroutine(_typeRoutine); _typeRoutine = null; }
             if (_matInstance != null) _matInstance.SetFloat("_HoleEnabled", 0f);
@@ -269,7 +286,11 @@ namespace ALWTTT.Tutorial
             if (_hoverLinkId != null && tm != null) tm.HideTooltip();
             _hoverLinkId = null;
 
-            if (id != null && tm != null && _concepts.Resolve(id, out string header, out string body) != ConceptSource.None)
+            string header = null, body = null;
+            bool found = id != null && (id.StartsWith(ConceptTagRenderer.CardLinkPrefix, StringComparison.Ordinal)
+                ? TutorialCardTooltip.TryBuild(id.Substring(ConceptTagRenderer.CardLinkPrefix.Length), out header, out body)   // [S10]
+                : _concepts.Resolve(id, out header, out body) != ConceptSource.None);
+            if (found && tm != null)
             {
                 tm.ShowTooltip(body, header);
                 _hoverLinkId = id;
@@ -322,9 +343,45 @@ namespace ALWTTT.Tutorial
             messageText.text = text;
             messageText.ForceMeshUpdate();
             int total = messageText.textInfo.characterCount;
+            if (text.IndexOf("<sprite", StringComparison.Ordinal) >= 0) LogSpriteDiagnostics(); // [S10]
 
             if (_typeRoutine != null) StopCoroutine(_typeRoutine);
             _typeRoutine = StartCoroutine(TypeRoutine(total));
+        }
+
+        // [S10] Why an inline sprite (the ★ icon) takes its space but is not drawn.
+        // [S10] After the typed reveal: rebuild the mesh so an inline sprite revealed through
+        // maxVisibleCharacters is redrawn (its sub-mesh can stay with the hidden quad).
+        private void RefreshSpritesAfterReveal()
+        {
+            if (messageText == null || messageText.text == null ||
+                messageText.text.IndexOf("<sprite", StringComparison.Ordinal) < 0) return;
+            messageText.havePropertiesChanged = true;
+            messageText.ForceMeshUpdate(true, true);
+            LogSpriteDiagnostics("tras revelar");
+        }
+
+        private void LogSpriteDiagnostics(string when = "al mostrar")
+        {
+            var ti = messageText.textInfo;
+            var sb = new System.Text.StringBuilder($"[S10] Ícono en texto ({when}) |");
+            for (int i = 0; i < ti.characterCount; i++)
+            {
+                var c = ti.characterInfo[i];
+                if (c.elementType != TMP_TextElementType.Sprite) continue;
+                sb.Append($" sprite#{i} visible={c.isVisible} " +
+                          $"escala={c.scale:0.###} alto={c.topLeft.y - c.bottomLeft.y:0.#} ancho={c.topRight.x - c.topLeft.x:0.#} " +
+                          $"color={c.color} mat={c.materialReferenceIndex} |");
+            }
+            for (int m = 0; m < ti.meshInfo.Length; m++)
+                sb.Append($" malla{m}: verts={ti.meshInfo[m].vertexCount} mat={(ti.meshInfo[m].material != null ? ti.meshInfo[m].material.name : "null")} |");
+            var subs = messageText.GetComponentsInChildren<TMP_SubMeshUI>(true);
+            foreach (var s in subs)
+                sb.Append($" submesh '{s.name}' activo={s.gameObject.activeInHierarchy} " +
+                          $"mat={(s.sharedMaterial != null ? s.sharedMaterial.name : "null")} " +
+                          $"tex={(s.sharedMaterial != null && s.sharedMaterial.mainTexture != null ? s.sharedMaterial.mainTexture.name : "null")} |");
+            sb.Append($" maxVisible={messageText.maxVisibleCharacters} submeshes={subs.Length}");
+            Debug.Log(sb.ToString());
         }
 
         private IEnumerator TypeRoutine(int totalChars)
@@ -339,6 +396,7 @@ namespace ALWTTT.Tutorial
                 yield return null;
             }
             messageText.maxVisibleCharacters = totalChars;
+            RefreshSpritesAfterReveal();   // [S10]
             _isTyping = false;
             _typeRoutine = null;
         }
@@ -348,6 +406,7 @@ namespace ALWTTT.Tutorial
             if (_typeRoutine != null) { StopCoroutine(_typeRoutine); _typeRoutine = null; }
             if (messageText != null)
                 messageText.maxVisibleCharacters = messageText.textInfo.characterCount;
+            RefreshSpritesAfterReveal();   // [S10]
             _isTyping = false;
         }
 

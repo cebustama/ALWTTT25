@@ -83,6 +83,18 @@ namespace ALWTTT
         [SerializeField] private Image ownerIconImage;
 
         public CardDefinition CardDefinition { get; private set; }
+
+        /// <summary>[S10] The frame shown now (action, composition or finisher): the card's outline.</summary>
+        public RectTransform ActiveFrameRect
+        {
+            get
+            {
+                GameObject go = finisherBackground != null && finisherBackground.activeSelf ? finisherBackground
+                    : compositionBackground != null && compositionBackground.activeSelf ? compositionBackground
+                    : actionBackground;
+                return go != null ? go.transform as RectTransform : null;
+            }
+        }
         public bool IsInactive { get; protected set; }
         public bool IsPlayable { get; protected set; } = true;
         public bool IsExhausted { get; protected set; }
@@ -874,6 +886,19 @@ namespace ALWTTT
                         targetList.Add(allBandCharacters.RandomItem());
                     break;
 
+                // [S10 / D16=A] From a card: the first tall member still to convince
+                // (Levántate). None left = the effect fizzles.
+                case ActionTargetType.AudienceTall:
+                    if (allAudienceCharacters != null)
+                        foreach (var a in allAudienceCharacters)
+                            if (a != null && a.IsTall && a.Stats != null && !a.Stats.IsConvinced)
+                            {
+                                targetList.Add(a);
+                                Debug.Log($"[S10] Efecto al Alto: '{a.CharacterId}'");
+                                break;
+                            }
+                    break;
+
                 default:
                     Debug.LogWarning($"[CardBase] Unhandled ActionTargetType for Effects: {targetType}");
                     break;
@@ -1163,6 +1188,22 @@ namespace ALWTTT
                     Tip(kwBody,
                         CardFacePresentation.HeaderWithGlyph(GameSymbols.Keyword(kw), kwHeader));   // [CARD-FACE-2b]
                 }
+            }
+
+            // 1b) [S10 / D16] A COMPOSITION with an on-play effect (Levántate: Cautivado al Alto).
+            //     Its full-art face shows no effect text, so the effect gets its own box here.
+            if (CardDefinition.IsComposition && CardDefinition.HasPayload && CardDefinition.Payload != null
+                && CardDefinition.Payload.Effects != null && CardDefinition.Payload.Effects.Count > 0)
+            {
+                var lines = new List<string>();
+                foreach (var fx in CardDefinition.Payload.Effects)
+                {
+                    if (fx == null) continue;
+                    string line = CardEffectDescriptionBuilder.Build(fx);
+                    if (!string.IsNullOrWhiteSpace(line)) lines.Add(line);
+                }
+                if (lines.Count > 0)
+                    Tip(string.Join("\n", lines), GameText.Format(GameTextTemplateIds.UiCardOnPlay));
             }
 
             // 2) Status-effect tooltips — unique StatusEffectSOs from payload.Effects.

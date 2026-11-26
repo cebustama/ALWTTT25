@@ -15,11 +15,15 @@ MonoBehaviour:
   triggerId: tut_spotlight
   priority: 137
   category: 1
-  revisitTitle: Spotlight
+  revisitTitle: Foco
   portrait: {fileID: 0}
   pages:
-  - "SPOTLIGHT: C2 se ha puesto bajo el foco. Durante un turno, el p\xFAblico que
-    apunta a uno solo le apunta a \xE9l. \xDAsalo para elegir qui\xE9n recibe el
-    golpe."
+  - "Robot C2 est\xE1 bajo el <link=spotlight>Foco</link>: las l\xEDneas discontinuas
+    del p\xFAblico ahora apuntan a \xE9l (<b>Tab</b> las muestra todas). Mira su
+    barra de <link=stamina>Aguante</link>: este turno se lleva los golpes y protege
+    al resto."
   highlightKey: status_icon_musician
-  mechanicText: 
+  mechanicText: "Robot C2 est\xE1 bajo el <link=spotlight>Foco</link>: las l\xEDneas
+    discontinuas del p\xFAblico ahora apuntan a \xE9l (<b>Tab</b> las muestra todas).
+    Mira su barra de <link=stamina>Aguante</link>: este turno se lleva los golpes
+    y protege al resto."

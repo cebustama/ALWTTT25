@@ -182,6 +182,7 @@ namespace ALWTTT.Cards.Effects
                 case ActionTargetType.AudienceCharacter: return TgtAudience;
                 case ActionTargetType.AllAudienceCharacters: return TgtAllAudience;
                 case ActionTargetType.RandomAudienceCharacter: return TgtRandomAudience;
+                case ActionTargetType.AudienceTall: return TgtAudienceTall;   // [S10 / D16]
                 default: return null;
             }
         }

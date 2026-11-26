@@ -15,7 +15,7 @@ MonoBehaviour:
   characterId: rana_azul
   characterName: Rana Azul
   characterDescription: "La otra mitad del d\xFAo."
-  maxVibe: 40
+  maxVibe: 30
   characterPrefab: {fileID: 3265463412373961885, guid: b3dfbffcf6e12d64595e51a9cbbbeeca, type: 3}
   isTall: 0
   isLeader: 0

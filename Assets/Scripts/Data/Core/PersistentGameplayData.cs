@@ -86,6 +86,14 @@ namespace ALWTTT.Data
         // [MAP-DEMO-1] The tutorial opt-in is asked once per run, not per gig.
         [SerializeField] private bool tutorialOptInAnswered;
 
+        // [S10] Run seed: rolled once per run (MainMenu fresh run, or lazily by the map).
+        // 0 = not rolled yet. Decides the random map node (D5=A); same seed, same node.
+        [SerializeField] private int runSeed;
+
+        // [S10 / D1a=A] True only in the run started by the menu's «Tutorial» button:
+        // fixed quartet, guided arc with the minimal dialog allow-list (D1b=A).
+        [SerializeField] private bool tutorialRun;
+
         // [S6 NAVE-2] Band chosen in the dormitory (D2=A). Empty = not chosen:
         // the first map node falls back to the DemoLaunchConfig roster.
         // Applied once, on the first node; locked after it (D3=A).
@@ -264,6 +272,20 @@ namespace ALWTTT.Data
             set => tutorialOptInAnswered = value;
         }
 
+        /// <summary>[S10] Run seed (0 = not rolled yet).</summary>
+        public int RunSeed
+        {
+            get => runSeed;
+            set => runSeed = value;
+        }
+
+        /// <summary>[S10 / D1a=A] The run started by the menu's «Tutorial» button.</summary>
+        public bool TutorialRun
+        {
+            get => tutorialRun;
+            set => tutorialRun = value;
+        }
+
         /// <summary>[S6 NAVE-2] Band picked in the dormitory; empty if none.</summary>
         public IReadOnlyList<MusicianBase> ChosenBandRoster => chosenBandRoster;
 
@@ -388,6 +410,8 @@ namespace ALWTTT.Data
             IsFinalEncounter = false;
             LinearMapNextNode = 0;          // [MAP-DEMO-1]
             TutorialOptInAnswered = false;  // [MAP-DEMO-1]
+            RunSeed = 0;                    // [S10]
+            TutorialRun = false;            // [S10]
             SetChosenBand(null, string.Empty); // [S6 NAVE-2]
 
             musicianHealthDataList = new List<MusicianHealthData>();
@@ -753,11 +777,15 @@ namespace ALWTTT.Data
             int skippedZeroCopies = 0;
             int skippedNoDomain = 0;
 
+            // [S10 / D2=A] Per-musician tally for the «mazo por alineación» log.
+            var s10Tally = new List<string>();
+
             // --- Per-musician contributions ---
             for (int mi = 0; mi < musicians.Count; mi++)
             {
                 var m = musicians[mi];
                 if (m == null) continue;
+                int s10A0 = currentActionCards.Count, s10C0 = currentCompositionCards.Count;
 
                 var catalog = m.CardCatalog;
                 if (catalog == null)
@@ -825,7 +853,11 @@ namespace ALWTTT.Data
                         skippedNoDomain++;
                     }
                 }
+
+                s10Tally.Add($"{m.CharacterName}: {currentCompositionCards.Count - s10C0} comp + " +
+                             $"{currentActionCards.Count - s10A0} acc");
             }
+            Debug.Log($"[S10] Mazo por músico ({musicians.Count}) | {string.Join(" · ", s10Tally)}");
 
             // --- Generic catalogue contributions (no provenance) ---
             int genericAction = 0;

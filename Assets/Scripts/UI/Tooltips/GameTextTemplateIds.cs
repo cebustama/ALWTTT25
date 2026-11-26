@@ -56,6 +56,8 @@ namespace ALWTTT.Tooltips
         public const string TgtAudience = "tgt_audience";
         public const string TgtAllAudience = "tgt_all_audience";
         public const string TgtRandomAudience = "tgt_random_audience";
+        public const string TgtAudienceTall = "tgt_audience_tall";   // [S10 / D16]
+        public const string UiCardOnPlay = "ui_card_on_play";        // [S10 / D16] header of the on-play box
 
         // ── Card face / detail modal (CardDefinitionDescriptionExtensions) ───
         public const string UiCardKindTrack = "ui_card_kind_track";              // —

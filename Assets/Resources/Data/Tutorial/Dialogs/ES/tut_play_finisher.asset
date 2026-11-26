@@ -18,13 +18,10 @@ MonoBehaviour:
   revisitTitle: Psychic Waves
   portrait: {fileID: 0}
   pages:
-  - "\xDAltimo loop. Hora del remate: PSYCHIC WAVES, una carta de ACCI\xD3N. No toca
-    la canci\xF3n: golpea la mente de TODO el p\xFAblico a la vez. Cuesta Inspiraci\xF3n.
-    Ju\xE9gala antes de que acabe el loop. Cada m\xFAsico tiene su remate; hoy toca
-    el de Sibi. El cierre lo es todo."
+  - "\xDAltimo loop: hora del remate. Juega {$card:c2_redoble_final}: gasta <link=inspiration><sprite=\"brillo\"
+    index=0></link> y a\xF1ade un loop extra con el solo de bater\xEDa de Robot C2.
+    El cierre lo es todo."
   highlightKey: card_psychic_waves
-  mechanicText: "Psychic Waves es una <link=action_card>carta de acci\xF3n</link>:
-    cuesta <link=inspiration>Inspiraci\xF3n</link>, reduce el <link=vibe>Vibe</link>
-    de todo el p\xFAblico a la vez y aplica <link=earworm>Earworm</link>, que sigue
-    reduciendo Vibe en los turnos del p\xFAblico siguientes. No cambia la canci\xF3n.
-    El tutorial la espera en el \xFAltimo <link=loop>loop</link>."
+  mechanicText: "\xDAltimo loop: hora del remate. Juega {$card:c2_redoble_final}:
+    gasta <link=inspiration><sprite=\"brillo\" index=0></link> y a\xF1ade un loop
+    extra con el solo de bater\xEDa de Robot C2. El cierre lo es todo."

@@ -253,10 +253,13 @@ namespace ALWTTT
         }
         #endregion
 
+        // [S10 / D9] Hand animation clock: real time while paused (the Space pause shows hover).
+        private static float HandDt => ALWTTT.UI.PauseGate.IsPaused ? Time.unscaledDeltaTime : Time.deltaTime;
+
         private void Update()
         {
             // [LEGIB-1a] No input this frame → no card preview on the Big Num.
-            if (!IsDraggingActive || ALWTTT.UI.PauseGate.IsPaused)
+            if (!IsDraggingActive || (ALWTTT.UI.PauseGate.IsPaused && !ALWTTT.UI.PauseGate.InspectOnly))
             {
                 if (useGigContext && GigManager != null) GigManager.SetCardPreview(null, null);
             }
@@ -267,7 +270,8 @@ namespace ALWTTT
             // [PAUSE-1 / D12=C] Pause is its own gate, ANDed with IsDraggingActive (which the
             // tutorial modal and SetHandVisible already share). timeScale = 0 does not stop
             // Update or Input, so without this line cards stay playable behind the menu.
-            if (ALWTTT.UI.PauseGate.IsPaused) return;
+            // [S10 / D9] The Space pause (InspectOnly) keeps hover and preview alive.
+            if (ALWTTT.UI.PauseGate.IsPaused && !ALWTTT.UI.PauseGate.InspectOnly) return;
 
             UpdateTuck();   // [S9] before the curve, so this frame's cards use it
 
@@ -487,13 +491,13 @@ namespace ALWTTT
                 cardTransform.rotation = Quaternion.RotateTowards(
                     cardTransform.rotation,
                     Quaternion.LookRotation(cardForward, cardUp),
-                    80f * Time.deltaTime
+                    80f * HandDt
                 );
 
                 // Handle Start Dragging
                 if (mouseHoveringOnSelected)
                 {
-                    var mouseButtonDown = Input.GetMouseButtonDown(0);
+                    var mouseButtonDown = Input.GetMouseButtonDown(0) && !ALWTTT.UI.PauseGate.IsPaused;
                     // [TUT-R2 / D4] Directive gate: beat 3 allows composition
                     // drags only; beat 5 blocks all drags. Modal gate (global
                     // IsDraggingActive) is unchanged and orthogonal.
@@ -519,7 +523,7 @@ namespace ALWTTT
                 {
                     // animates back to its curve position
                     cardPos =
-                        Vector3.MoveTowards(cardTransform.position, cardPos, 16f * Time.deltaTime);
+                        Vector3.MoveTowards(cardTransform.position, cardPos, 16f * HandDt);
                     cardTransform.position = cardPos;
                 }
 
@@ -532,7 +536,7 @@ namespace ALWTTT
                     var targetVec = Vector3.one * targetScale;
                     cardTransform.localScale = Vector3.MoveTowards(
                         cardTransform.localScale, targetVec,
-                        scaleLerpSpeed * Time.deltaTime);
+                        scaleLerpSpeed * HandDt);
 
                     // M1.9 temp log — fires once per session on first hover
                     if (isHighlighted && !_hasLoggedScaleInit)
@@ -626,14 +630,14 @@ namespace ALWTTT
 
                 // Smooth Rotation and Position Update
                 cardTransform.rotation = Quaternion.RotateTowards(cardTransform.rotation,
-                    Quaternion.LookRotation(cardForward, cardUp), 80f * Time.deltaTime);
+                    Quaternion.LookRotation(cardForward, cardUp), 80f * HandDt);
                 cardTransform.position = cardPos;
 
                 // Held card stays at hover scale (M1.9)
                 var heldTargetScale = Vector3.one * (cardBaseScale * cardHoverScaleMultiplier);
                 cardTransform.localScale = Vector3.MoveTowards(
                     cardTransform.localScale, heldTargetScale,
-                    scaleLerpSpeed * Time.deltaTime);
+                    scaleLerpSpeed * HandDt);
 
                 // Contextual highlights based on actions and target types
                 //if (useGigContext && GigManager != null)
@@ -647,7 +651,10 @@ namespace ALWTTT
 
                 heldCard.UpdateDescription(musician);
 
-                if (!GameManager.PersistentGameplayData.CanSelectCards || mouseInsideHand)
+                // [S10] Conito and the low audience sit inside the hand band: a targeted card
+                // over them used to snap back to the hand before the drop (playtest 25-nov).
+                if (!GameManager.PersistentGameplayData.CanSelectCards ||
+                    (mouseInsideHand && !HeldOverTargetCharacter(mousePos)))
                 {
                     heldCard.UpdateDescription(null);
                     //  || sqrDistance <= 2
@@ -775,6 +782,17 @@ namespace ALWTTT
             // ─────────────────────────────────────────────
             if (data.IsComposition)
             {
+                // [S10] Tutorial, song 2: one composition per loop (each new musician adds Capas).
+                if (ALWTTT.Tutorial.TutorialScriptedDrawQueue.OneCompositionPerLoop &&
+                    ALWTTT.Tutorial.TutorialScriptedDrawQueue.CompositionUsedThisLoop && !data.IsFinisher)
+                {
+                    ALWTTT.Managers.GigManager.ReportPlayDenied(PlayDenyReason.Other,
+                        "En esta canción, una composición por loop: la siguiente, en el próximo loop.", data, null);
+                    Debug.Log($"[S10][CARTAS] no se jugó {ALWTTT.Managers.DeckManager.CardNames(new[] { data })}: " +
+                              "ya entró una composición en este loop (tutorial, canción 2)");
+                    return false;
+                }
+
                 MusicianBase target = null;
 
                 // 1a) If the card has a fixed musician type, resolve that FIRST and ignore hover.
@@ -1092,11 +1110,60 @@ namespace ALWTTT
             heldCard = null;
         }
 
+        private CardBase _heldOverLoggedFor;
+
+        /// <summary>[S10] A held card that needs a target, over any character (collider or drawn
+        /// sprite), stays held even inside the hand band; the drop then resolves the target.</summary>
+        private bool HeldOverTargetCharacter(Vector2 mousePos)
+        {
+            if (!useGigContext || heldCard == null || heldCard.CardDefinition == null) return false;
+            if (!heldCard.CardDefinition.RequiresTargetSelection || mainCam == null) return false;
+            var ray = mainCam.ScreenPointToRay(mousePos);
+            ICharacter over = null;
+            if (CharacterBase.RaycastTopmost(ray, 1000, targetLayer, null, out var hit))
+                over = hit.collider.gameObject.GetComponent<ICharacter>();
+            if (over == null) over = PickBySpriteBounds(ray, null);
+            if (over != null && _heldOverLoggedFor != heldCard)
+            {
+                _heldOverLoggedFor = heldCard;
+                Debug.Log($"[S10][CARTAS] '{heldCard.CardDefinition.Id}' sobre la franja de la mano pero encima de " +
+                          $"'{over.GetCharacterBase()?.name}': sigue en el aire (antes volvía a la mano)");
+            }
+            return over != null;
+        }
+
+        /// <summary>[S10] Drop fallback: the character whose drawn sprite contains the pointer
+        /// (topmost by sorting, like RaycastTopmost), among those <paramref name="accept"/> admits.</summary>
+        private static ICharacter PickBySpriteBounds(Ray ray, System.Func<ICharacter, bool> accept)
+        {
+            ICharacter best = null;
+            int bestLayer = int.MinValue, bestOrder = int.MinValue;
+            foreach (var cb in UnityEngine.Object.FindObjectsByType<CharacterBase>(FindObjectsSortMode.None))
+            {
+                if (cb == null || !cb.isActiveAndEnabled || !(cb is ICharacter ic)) continue;
+                if (accept != null && !accept(ic)) continue;
+                var sr = cb.SpriteRenderer;
+                if (sr == null || !sr.enabled || !sr.gameObject.activeInHierarchy) continue;
+                var b = sr.bounds;
+                if (!new Plane(Vector3.forward, b.center).Raycast(ray, out var d)) continue;
+                var p = ray.GetPoint(d);
+                if (p.x < b.min.x || p.x > b.max.x || p.y < b.min.y || p.y > b.max.y) continue;
+                int layer = SortingLayer.GetLayerValueFromID(sr.sortingLayerID), order = sr.sortingOrder;
+                if (best == null || layer > bestLayer || (layer == bestLayer && order > bestOrder))
+                {
+                    best = ic; bestLayer = layer; bestOrder = order;
+                }
+            }
+            return best;
+        }
+
         private MusicianBase IsOverMusician(Vector2 mousePos)
         {
             var mainRay = mainCam.ScreenPointToRay(mousePos);
             RaycastHit hit;
-            if (CharacterBase.RaycastTopmost(mainRay, 1000, targetLayer, out hit))
+            // [S10] Musicians only: the audience drawn in front of Conito no longer steals the drop.
+            if (CharacterBase.RaycastTopmost(mainRay, 1000, targetLayer,
+                    c => c.GetCharacterType() == CharacterType.Musician, out hit))
             {
                 var musician = hit.collider.gameObject.GetComponent<MusicianBase>();
                 return musician;
@@ -1109,32 +1176,6 @@ namespace ALWTTT
             Ray ray, CardDefinition data, out CharacterBase targetCharacter)
         {
             targetCharacter = null;
-
-            if (!CharacterBase.RaycastTopmost(ray, 1000, targetLayer, out var hit))
-            {
-                LogV($"{DebugTag} [Gig] No character hit by raycast.");
-                return false;
-            }
-
-            var character = hit.collider.gameObject.GetComponent<ICharacter>();
-            if (character == null)
-            {
-                LogV($"{DebugTag} [Gig] Raycast hit but no ICharacter component.");
-                return false;
-            }
-
-            if (character.IsStunned)
-            {
-                LogV($"{DebugTag} [Gig] Target is stunned; cannot target.");
-                return false;
-            }
-
-            var baseTarget = character.GetCharacterBase();
-            if (baseTarget == null)
-            {
-                LogV($"{DebugTag} [Gig] ICharacter.GetCharacterBase returned null.");
-                return false;
-            }
 
             // CSO-based validation:
             // If the card only has single-target status actions for musicians,
@@ -1195,11 +1236,54 @@ namespace ALWTTT
                 }
             }
 
+            // [S10] Pick only among the characters this card can target, so the one drawn on
+            // top of the wanted target (audience over Conito, musicians over the crowd) does
+            // not swallow the drop. Validation below stays as the final word.
+            System.Func<ICharacter, bool> accept = null;
+            if (expectsMusicianSingle && !expectsAudienceSingle)
+                accept = c => c.GetCharacterType() == CharacterType.Musician;
+            else if (expectsAudienceSingle && !expectsMusicianSingle)
+                accept = c => c.GetCharacterType() == CharacterType.Audience;
+
+            ICharacter character = null;
+            if (CharacterBase.RaycastTopmost(ray, 1000, targetLayer, accept, out var hit))
+                character = hit.collider.gameObject.GetComponent<ICharacter>();
+            // [S10] The colliders are smaller than the drawings: a drop on the visible body
+            // (where the hover tooltip already shows) falls back to the sprite's bounds.
+            if (character == null)
+            {
+                character = PickBySpriteBounds(ray, accept);
+                if (character != null)
+                    Debug.Log($"[S10][CARTAS] objetivo por silueta: '{character.GetCharacterBase()?.name}' " +
+                              $"para {ALWTTT.Managers.DeckManager.CardNames(new[] { data })}");
+            }
+            if (character == null)
+            {
+                Debug.Log($"[S10][CARTAS] no se jugó {ALWTTT.Managers.DeckManager.CardNames(new[] { data })}: " +
+                          $"soltada sin un personaje válido debajo (ratón {Input.mousePosition.x:F0},{Input.mousePosition.y:F0} " +
+                          $"de {Screen.width}×{Screen.height})");
+                return false;
+            }
+
+            if (character.IsStunned)
+            {
+                Debug.Log($"[S10][CARTAS] no se jugó {ALWTTT.Managers.DeckManager.CardNames(new[] { data })}: " +
+                          $"'{character.GetCharacterBase()?.name}' está aturdido");
+                return false;
+            }
+
+            var baseTarget = character.GetCharacterBase();
+            if (baseTarget == null)
+            {
+                LogV($"{DebugTag} [Gig] ICharacter.GetCharacterBase returned null.");
+                return false;
+            }
+
             if (expectsMusicianSingle && !expectsAudienceSingle)
             {
                 if (baseTarget.GetCharacterType() != CharacterType.Musician)
                 {
-                    LogV($"{DebugTag} [Gig] Card expects a musician target.");
+                    Debug.Log($"[S10][CARTAS] no se jugó '{data.Id}': pide un músico y cayó sobre '{baseTarget.name}'");
                     return false;
                 }
             }
@@ -1207,7 +1291,7 @@ namespace ALWTTT
             {
                 if (baseTarget.GetCharacterType() != CharacterType.Audience)
                 {
-                    LogV($"{DebugTag} [Gig] Card expects an audience target.");
+                    Debug.Log($"[S10][CARTAS] no se jugó '{data.Id}': pide público y cayó sobre '{baseTarget.name}'");
                     return false;
                 }
             }
@@ -1263,7 +1347,7 @@ namespace ALWTTT
         {
             var point = transform.InverseTransformPoint(mouseWorldPos);
             mouseInsideHand = handBounds.Contains(point);
-            mouseButton = Input.GetMouseButton(0);
+            mouseButton = Input.GetMouseButton(0) && !ALWTTT.UI.PauseGate.IsPaused;   // [S10] no plays in the Space pause
         }
 
         private void TiltCard(Vector2 mousePos)
@@ -1272,16 +1356,16 @@ namespace ALWTTT
             mousePosDelta = (mousePos - prevMousePos)
                * new Vector2(referenceResolution.x / Screen.width,
                              referenceResolution.y / Screen.height)
-               * Time.deltaTime;
+               * HandDt;
             prevMousePos = mousePos;
 
             var tiltStrength = 3f;
             var tiltDrag = 3f;
             var tiltSpeed = 50f;
 
-            force += (mousePosDelta * tiltStrength - heldCardTilt) * Time.deltaTime;
-            force *= 1 - tiltDrag * Time.deltaTime;
-            heldCardTilt += force * (Time.deltaTime * tiltSpeed);
+            force += (mousePosDelta * tiltStrength - heldCardTilt) * HandDt;
+            force *= 1 - tiltDrag * HandDt;
+            heldCardTilt += force * (HandDt * tiltSpeed);
 
             if (showDebugGizmos)
             {

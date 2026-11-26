@@ -118,6 +118,7 @@ namespace ALWTTT.Tutorial
         public static void AttachToCard(CardBase card, Camera handCamera)
         {
             if (card == null || card.CardDefinition == null) return;
+            TutorialCardPulse.Attach(card);   // [S10] pulsing outline when the tutorial names it
             if (!_cardKeysById.TryGetValue(card.CardDefinition.Id, out var key))
                 return;
 

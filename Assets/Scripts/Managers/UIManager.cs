@@ -72,6 +72,33 @@ namespace ALWTTT.Managers
             {
                 HandleEscapeKey();
             }
+
+            // [S10 / D9] Space pauses the gig (frozen world, the hand can still be looked at).
+            if (Input.GetKeyDown(KeyCode.Space) && !TypingInAField())
+            {
+                var pause = PauseMenuController.Instance;
+                if (pause != null) pause.HandleSpace();
+            }
+        }
+
+        // [S10 / D9] Space is also the UI "Submit" key: a button left selected after a click
+        // (Play!) would fire again on Space. In a gig nothing needs keyboard focus but text fields.
+        private void LateUpdate()
+        {
+            var es = UnityEngine.EventSystems.EventSystem.current;
+            if (es == null || GigManager.Instance == null) return;
+            if (PauseGate.IsPaused && !PauseGate.InspectOnly) return;   // the pause menu keeps its focus
+            var sel = es.currentSelectedGameObject;
+            if (sel != null && sel.GetComponent<UnityEngine.UI.Selectable>() != null && !TypingInAField())
+                es.SetSelectedGameObject(null);
+        }
+
+        private static bool TypingInAField()
+        {
+            var es = UnityEngine.EventSystems.EventSystem.current;
+            var sel = es != null ? es.currentSelectedGameObject : null;
+            return sel != null && (sel.GetComponent<TMPro.TMP_InputField>() != null ||
+                                   sel.GetComponent<UnityEngine.UI.InputField>() != null);
         }
 
         // [B3-demo-polish / D-UX3=D] Simple two-state ESC behavior:

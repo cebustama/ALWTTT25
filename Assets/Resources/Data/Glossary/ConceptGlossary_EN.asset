@@ -68,6 +68,23 @@ MonoBehaviour:
     displayName: Hype
     description: The song's accumulated intensity. At song end it converts into Vibe
       damage on every audience member; crossing thresholds steps up the stage effects.
+  - id: stamina
+    displayName: Stamina
+    description: "A musician's endurance: the green bar above them. <link=stress>Stress</link>
+      lowers it; at zero, <link=breakdown>Breakdown</link>."
+  - id: combo_layers
+    displayName: Layers
+    description: "Each loop in a row where at least one new musician enters multiplies
+      everything playing: \xD71.5 the second, \xD72.25 the third\u2026 and it lasts the whole song."
+  - id: combo_rhythm_section
+    displayName: Rhythm section
+    description: "Combo: drums (rhythm) and bass play together in a loop where at least one of them entered and nobody else did. +2 Vibe on that loop (the number at the top right)."
+  - id: combo_media_luz
+    displayName: Half light
+    description: "Combo: backing (chords) and melody play together in a loop where at least one of them entered and nobody else did. +2 Vibe on that loop."
+  - id: combo_full_band
+    displayName: Full band!
+    description: "Combo: all four musicians play at once for the first time in the song. +3 Vibe on that loop."
   - id: inspiration
     displayName: Inspiration
     description: The resource that pays for cards. Granted at the end of each loop.
@@ -495,6 +512,10 @@ MonoBehaviour:
     text: all audience
   - id: tgt_random_audience
     text: a random audience member
+  - id: ui_card_on_play
+    text: When played
+  - id: tgt_audience_tall
+    text: the first <link=tall>Tall</link> one
   - id: ui_card_kind_track
     text: Track
   - id: ui_card_kind_part
@@ -867,6 +888,8 @@ MonoBehaviour:
     text: No part is looping right now.
   - id: ui_unplayable_finishertiming
     text: 'Not now: the Finisher is played in the song''s last loop.'
+  - id: ui_unplayable_oneperloop
+    text: 'Tutorial: one composition per loop in this song. Play this one next loop.'
   - id: ui_gig_play_button
     text: Play
   - id: ui_unplayable_budget_action

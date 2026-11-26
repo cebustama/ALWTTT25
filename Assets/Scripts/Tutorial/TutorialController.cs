@@ -171,6 +171,8 @@ namespace ALWTTT.Tutorial
         /// <summary>[TUT-R2] Raised after a dialog completes and is marked
         /// fired. The guided driver chains dismissal-triggered beats off this.</summary>
         public event Action<string> DialogCompleted;
+        /// <summary>[S10] A dialog just appeared on screen (the driver pauses for some).</summary>
+        public event Action<string> DialogShown;
 
         /// <summary>[TUT-R2] Driver-facing enqueue: same fired/dedup/priority
         /// path as reactive triggers. Guided ids are never suppressed.</summary>
@@ -183,6 +185,17 @@ namespace ALWTTT.Tutorial
             if (string.IsNullOrEmpty(triggerId) || HasFired(triggerId)) return;
             MarkFired(triggerId);
             Log($"'{triggerId}' marked fired WITHOUT show (degrade path)");
+        }
+
+        // [S10 / D1b=A] Allow-list mode for the menu's «Tutorial» run: when set, ONLY these
+        // ids can show (guided beats + end of gig); every reactive dialog stays silent.
+        // null = off (normal behaviour, the suppressed set above decides).
+        private HashSet<string> _allowOnly;
+
+        /// <summary>[S10 / D1b=A] Show only these ids (null = off).</summary>
+        public void SetAllowOnly(IEnumerable<string> ids)
+        {
+            _allowOnly = ids == null ? null : new HashSet<string>(ids);
         }
 
         /// <summary>[TUT-R2] Replace the suppressed-trigger set (guided driver).</summary>
@@ -434,6 +447,9 @@ namespace ALWTTT.Tutorial
             if (_suppressed.Contains(triggerId))
             { Log($"  ↳ '{triggerId}' skipped (superseded — suppressed by guided driver)"); return; }
 
+            if (_allowOnly != null && !_allowOnly.Contains(triggerId))
+            { TutorialTrace.Skipped(triggerId, "fuera del tutorial mínimo"); return; }
+
             if (HasFired(triggerId)) { Log($"  ↳ '{triggerId}' skipped (already fired)"); return; }
             if (QueueContains(triggerId)) { Log($"  ↳ '{triggerId}' skipped (already queued)"); return; }
             if (_showing && _showingId == triggerId) { Log($"  ↳ '{triggerId}' skipped (already showing)"); return; }
@@ -478,6 +494,7 @@ namespace ALWTTT.Tutorial
             _showingId = next.TriggerId;   // [D-S4-DEDUP]
 
             var spot = ResolveHighlight(next);
+            TutorialTrace.Shown(next.TriggerId, _queue.Count); // [S10]
             Log($"SHOW '{next.TriggerId}' (highlight='{(next.HasHighlight ? next.HighlightKey : "none")}', " +
                 $"spotlight={(spot.Enabled ? (spot.Target != null ? spot.Target.name : "manual") : "none")}, " +
                 $"body={(ResolveBodyPages(next) != null ? "mechanic" : "pages")})");
@@ -485,6 +502,8 @@ namespace ALWTTT.Tutorial
                 onComplete: () => OnDialogComplete(next),
                 pagesOverride: ResolveBodyPages(next));
             StartHighlightPulse(next); // [TUT-R2b]
+            TutorialCardPulse.WantCardsNamedIn(next);   // [S10] the cards it names pulse
+            DialogShown?.Invoke(next.TriggerId);
         }
 
         private void OnDialogComplete(TutorialDialogSO dialog)
@@ -504,6 +523,7 @@ namespace ALWTTT.Tutorial
 
 
             Log($"COMPLETE '{dialog.TriggerId}' → marked fired (remaining queue {_queue.Count})");
+            TutorialTrace.Closed(dialog.TriggerId); // [S10]
             _showing = false;
             _showingId = null;             // [D-S4-DEDUP]
 
@@ -618,6 +638,14 @@ namespace ALWTTT.Tutorial
 
         private Spotlight ResolveHighlight(TutorialDialogSO dialog)
         {
+            // [S10] The track list gets the cards' gold outline, not a spotlight circle.
+            if (dialog != null && dialog.HasHighlight && dialog.HighlightKey == "song_panel_tracks" &&
+                TutorialTracksOutline.Show())
+                return Spotlight.None;
+            // [S10] Cohesion is introduced here: outline the hearts (bottom left).
+            if (dialog != null && dialog.TriggerId == TutorialTriggerId.AudienceTurn)
+                TutorialTracksOutline.ShowCohesion();
+
             if (dialog != null && dialog.HasHighlight &&
                 TutorialHighlightRegistry.TryGet(dialog.HighlightKey, out var sceneTarget))
             {

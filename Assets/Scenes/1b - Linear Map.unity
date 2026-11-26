@@ -1471,14 +1471,31 @@ MonoBehaviour:
     launchConfig: {fileID: 11400000, guid: 722253feefe25e3489739e6d2d4ab5a8, type: 2}
     title: Gig 1
     description: 
+    randomOptions:
+    - launchConfig: {fileID: 11400000, guid: 722253feefe25e3489739e6d2d4ab5a8, type: 2}
+      weight: 1
+      title: Ranas y Rayas
+      description: 
+    - launchConfig: {fileID: 11400000, guid: 1da3e04ac041c8d4fbc47ccf13627cb7, type: 2}
+      weight: 1
+      title: "Tent\xE1culos"
+      description: 
+    randomTitle: '?'
+    randomDescription: "Nadie sabe qui\xE9n vendr\xE1 esta noche."
   - visual: {fileID: 163151818}
     launchConfig: {fileID: 11400000, guid: fc063f365891abd47a2d58d90bf2998b, type: 2}
     title: Gig 2
     description: 
+    randomOptions: []
+    randomTitle: '?'
+    randomDescription: "Nadie sabe qui\xE9n vendr\xE1 esta noche."
   - visual: {fileID: 1915744378}
     launchConfig: {fileID: 11400000, guid: 179c0edbfb9f6f44fa552ca9614ca4f0, type: 2}
     title: La Reina Gusano
     description: 
+    randomOptions: []
+    randomTitle: '?'
+    randomDescription: "Nadie sabe qui\xE9n vendr\xE1 esta noche."
   pastStops:
   - visual: {fileID: 1341624381}
     title: "Bar Cr\xE1ter"

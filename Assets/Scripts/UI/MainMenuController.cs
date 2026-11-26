@@ -2,7 +2,10 @@
 using ALWTTT.Data;
 using ALWTTT.Utils;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.UI;
 
 namespace ALWTTT.Managers
 {
@@ -64,10 +67,71 @@ namespace ALWTTT.Managers
             "scene's canvas. Opened by OnOptionsPressed.")]
         private ALWTTT.UI.OptionsPanelController optionsPanel;
 
+        [Header("Tutorial (S10 / D1a=A)")]
+        [SerializeField, Tooltip("Gig played by the «Tutorial» button: the full quartet and an " +
+            "easy audience. Its band roster is used as is (the dormitory is skipped).")]
+        private DemoLaunchConfigSO tutorialLaunchConfig;
+
         private void Awake()
         {
             if (sceneChanger == null)
                 sceneChanger = FindFirstObjectByType<SceneChanger>();
+        }
+
+        // [S10 / D3=A, menú] The menu buttons live in the MainMenuCanvas prefab (with scene
+        // overrides), so they are rearranged here at runtime instead of editing the nested
+        // prefab: «Continue» (PlayButton, disabled since the demo has no saves) becomes
+        // «Tutorial», and a small «Pruebas» button is added in the bottom-left corner.
+        private void Start()
+        {
+            var buttons = FindObjectsByType<Button>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            Button continueButton = null, exitButton = null, tests = null;
+            foreach (var b in buttons)
+            {
+                if (b.name == "PlayButton") continueButton = b;
+                else if (b.name == "ExitButton") exitButton = b;
+                else if (b.name == "TestsButton") tests = b;
+            }
+
+            if (continueButton != null)
+            {
+                Rewire(continueButton, "Tutorial", OnTutorialPressed);
+                continueButton.name = "TutorialButton";
+                continueButton.transform.SetAsFirstSibling();
+            }
+            else Debug.LogWarning("[S10] Menú: no encuentro el botón «Continue» (PlayButton).");
+
+            if (tests == null && exitButton != null)
+            {
+                var canvas = exitButton.GetComponentInParent<Canvas>().rootCanvas;
+                tests = Instantiate(exitButton, canvas.transform, false);
+                tests.name = "TestsButton";
+                var rt = (RectTransform)tests.transform;
+                rt.anchorMin = rt.anchorMax = rt.pivot = Vector2.zero;
+                rt.anchoredPosition = new Vector2(24f, 24f);
+                rt.sizeDelta = new Vector2(170f, 46f);
+                var le = tests.GetComponent<LayoutElement>();
+                if (le != null) le.ignoreLayout = true;
+                Rewire(tests, "Pruebas", OnTestsPressed);
+                var label = tests.GetComponentInChildren<TMP_Text>(true);
+                if (label != null) { label.enableAutoSizing = false; label.fontSize = 26f; }
+            }
+
+            Debug.Log($"[S10] Menú | Tutorial={(continueButton != null ? "ok" : "falta")} | " +
+                      $"Pruebas={(tests != null ? "ok" : "falta")} | " +
+                      $"config tutorial={(tutorialLaunchConfig != null ? tutorialLaunchConfig.name : "SIN ASIGNAR")}");
+        }
+
+        // Turns off the Inspector (persistent) OnClick calls and wires a new one.
+        private static void Rewire(Button b, string text, UnityAction action)
+        {
+            for (int i = 0; i < b.onClick.GetPersistentEventCount(); i++)
+                b.onClick.SetPersistentListenerState(i, UnityEventCallState.Off);
+            b.onClick.RemoveAllListeners();
+            b.onClick.AddListener(action);
+            b.interactable = true;
+            var label = b.GetComponentInChildren<TMP_Text>(true);
+            if (label != null) label.text = text;
         }
 
         /// <summary>
@@ -84,6 +148,7 @@ namespace ALWTTT.Managers
                 {
                     gm0.InitGameplayData();
                     gm0.SetInitialDeck();
+                    ALWTTT.Map.LinearMapController.EnsureRunSeed(gm0.PersistentGameplayData, devSettings); // [S10]
                 }
 
                 Debug.Log($"[S5] Menu → Ship | fresh run");
@@ -102,6 +167,7 @@ namespace ALWTTT.Managers
                 {
                     gm.InitGameplayData();
                     gm.SetInitialDeck();
+                    ALWTTT.Map.LinearMapController.EnsureRunSeed(gm.PersistentGameplayData, devSettings); // [S10]
                 }
 
                 Debug.Log($"[{CallerTag}] StartOnLinearMap → fresh run, opening map scene.");
@@ -143,6 +209,83 @@ namespace ALWTTT.Managers
             if (optionsPanel != null) optionsPanel.Open();
             else Debug.LogWarning($"[{CallerTag}] Options panel not wired on MainMenuController.");
         }
+
+        /// <summary>
+        /// [S10 / D1a=A] «Tutorial» button: a separate path from «Play». Fresh run, the
+        /// full quartet of <see cref="tutorialLaunchConfig"/>, tutorial ON without the
+        /// opt-in prompt, and the minimal dialog allow-list (PD.TutorialRun, D1b=A).
+        /// Final encounter: a win ends on the WinPanel → «Volver al menú».
+        /// </summary>
+        public void OnTutorialPressed()
+        {
+            var cfg = tutorialLaunchConfig;
+            string reason = "tutorialLaunchConfig is not wired.";
+            if (cfg == null || !cfg.IsValid(out reason))
+            {
+                Debug.LogError($"[S10] Tutorial: no se puede lanzar: {reason}");
+                return;
+            }
+            if (setupRoster == null || flowSettings == null)
+            {
+                Debug.LogError("[S10] Tutorial: faltan setupRoster o flowSettings en MainMenuController.");
+                return;
+            }
+
+            var gm = GameManager.Instance;
+            if (gm != null)
+            {
+                gm.InitGameplayData();
+                gm.SetInitialDeck();
+            }
+            var pd = gm != null ? gm.PersistentGameplayData : null;
+            if (pd != null)
+            {
+                EnsureSeed(pd);
+                pd.TutorialRun = true;
+                pd.TutorialEnabled = true;
+                pd.TutorialOptInAnswered = true; // no "Tutorial?" prompt in this path
+            }
+
+            var runConfig = cfg.ToRunConfig();
+            if (runConfig == null) return;
+            var roster = cfg.ResolvedBandRoster;
+
+            Debug.Log($"[S10] Menú → Tutorial | gig='{cfg.Encounter.GetLabel()}' | " +
+                      $"músicos={roster.Count} | canciones={cfg.RequiredSongCount}");
+
+            GigLauncher.Launch(
+                runConfig: runConfig,
+                bandRoster: roster,
+                setupRoster: setupRoster,
+                flowSettings: flowSettings,
+                isFinalEncounter: true,
+                sceneChanger: sceneChanger,
+                callerTag: "S10 Tutorial");
+        }
+
+        /// <summary>
+        /// [S10 / D3=A] «Pruebas» button: the GigSetup scene (pick deck, band and audience).
+        /// </summary>
+        public void OnTestsPressed()
+        {
+            if (sceneChanger == null)
+            {
+                Debug.LogError($"[{CallerTag}] SceneChanger missing; cannot open GigSetup.");
+                return;
+            }
+            var gm = GameManager.Instance;
+            if (gm != null)
+            {
+                gm.InitGameplayData();
+                gm.SetInitialDeck();
+                EnsureSeed(gm.PersistentGameplayData);
+            }
+            Debug.Log("[S10] Menú → Pruebas (GigSetup)");
+            sceneChanger.OpenGigSetupScene();
+        }
+
+        private void EnsureSeed(PersistentGameplayData pd) =>
+            ALWTTT.Map.LinearMapController.EnsureRunSeed(pd, devSettings);
 
         /// <summary>
         /// Try to take the auto-launch path. Returns false (with a log) if

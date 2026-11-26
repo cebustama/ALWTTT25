@@ -20,4 +20,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 90b93b9a58ad0ac44937f6f5307d3a77, type: 2}
   numberOfSongs: 1
   fansOnWin: 0
-  cohesionPenaltyOnLoss: 0
+  cohesionPenaltyOnLoss: 2

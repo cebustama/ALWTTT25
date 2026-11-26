@@ -48,6 +48,15 @@ namespace ALWTTT.Tutorial
         public const string SongEndVibe = "tut_song_end_vibe";        // beat 9
         public const string AudienceTurn = "tut_audience_turn";        // beat 10
 
+        // [S10 / D11=A] Minimal tutorial, one card family per turn.
+        public const string AbilitiesIntro = "tut_abilities_intro";    // turn 2: abilities
+        public const string StatusIntro = "tut_status_intro";          // turn 3: status effects
+        public const string OnYourOwn = "tut_on_your_own";            // turn 2: build the song alone
+        public const string LoopMore = "tut_loop_more";                // song 1, Play: one more each loop
+        public const string PauseHint = "tut_pause_hint";              // (retired 26-nov: merged into LayersIntro)
+        public const string LayersIntro = "tut_layers_intro";          // song 2, Play: one per loop, Capas, Space
+        public const string TracksIntro = "tut_tracks_intro";          // song 3, loop 1: track list + combos
+
         // ── [TUT-R2] Rewritten reactives (TUT-R1 §4) ──
         public const string StatusBuffMusician = "tut_status_buff_musician";
         public const string StatusDebuffAudience = "tut_status_debuff_audience";

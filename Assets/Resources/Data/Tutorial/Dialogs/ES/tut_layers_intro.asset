@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e631fe99ddcdaca4c953ce2afe40356d, type: 3}
+  m_Name: tut_layers_intro
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Tutorial.TutorialDialogSO
+  triggerId: tut_layers_intro
+  priority: 66
+  category: 0
+  revisitTitle: Una por loop
+  portrait: {fileID: 0}
+  pages:
+  - "\xBFPor qu\xE9 una por loop? Cada loop en que entra un m\xFAsico nuevo suma
+    <link=combo_layers>Capas</link> (\xD71,5 el segundo, \xD72,25 el tercero\u2026),
+    que multiplican todo lo que suena. Las cartas con borde celeste traen a un m\xFAsico
+    que a\xFAn no toca; las rojas esperan al pr\xF3ximo loop. El juego est\xE1 en
+    pausa: pulsa <b>Espacio</b> cuando quieras para pararlo y mirar tus cartas."
+  highlightKey: 
+  mechanicText: "\xBFPor qu\xE9 una por loop? Cada loop en que entra un m\xFAsico
+    nuevo suma <link=combo_layers>Capas</link> (\xD71,5 el segundo, \xD72,25 el tercero\u2026),
+    que multiplican todo lo que suena. Las cartas con borde celeste traen a un m\xFAsico
+    que a\xFAn no toca; las rojas esperan al pr\xF3ximo loop. El juego est\xE1 en
+    pausa: pulsa <b>Espacio</b> cuando quieras para pararlo y mirar tus cartas."

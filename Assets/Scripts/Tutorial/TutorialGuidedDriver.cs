@@ -73,6 +73,32 @@ namespace ALWTTT.Tutorial
             TutorialTriggerId.HarmonyDenied, TutorialTriggerId.SungMelody,
         };
 
+        // [S10 / D1b=A] The menu's «Tutorial» run shows ONLY these: 8 guided beats plus
+        // the end of the gig. TracksByMusician and LoopsStructure are skipped (their
+        // content is folded into PressPlay); every reactive dialog stays silent.
+        private static readonly string[] MinimalTutorialAllow =
+        {
+            TutorialTriggerId.JamWelcome, TutorialTriggerId.YourTurn,
+            TutorialTriggerId.PlayComposition, TutorialTriggerId.PressPlay,
+            TutorialTriggerId.InspirationEconomy, TutorialTriggerId.PlayFinisher,
+            TutorialTriggerId.PlayFinisherEarly, TutorialTriggerId.SongEndVibe,
+            TutorialTriggerId.AudienceTurn, TutorialTriggerId.GigWon, TutorialTriggerId.GigLost,
+            TutorialTriggerId.AbilitiesIntro, TutorialTriggerId.StatusIntro,   // [S10 / D11=A]
+            TutorialTriggerId.OnYourOwn,
+            TutorialTriggerId.LoopMore, TutorialTriggerId.PauseHint,           // [S10] 25-nov
+            TutorialTriggerId.TracksIntro, TutorialTriggerId.LayersIntro,
+        };
+
+        private static bool IsTutorialRun
+        {
+            get
+            {
+                var pd = GameManager.Instance != null
+                    ? GameManager.Instance.PersistentGameplayData : null;
+                return pd != null && pd.TutorialRun;
+            }
+        }
+
         private bool _finisherPlayedThisSong;
         // [TUT-R2b FIX-2] Request flags: set when the driver ACTS on a beat,
         // independent of when the dialog completes (HasFired flips only on
@@ -122,6 +148,34 @@ namespace ALWTTT.Tutorial
             TutorialLoopHoldGate.Release();
             TutorialScriptedDrawQueue.Clear();
 
+            // [S10 / D11=A] Minimal tutorial: scripted hands, drum-solo finisher.
+            TutorialScriptedDrawQueue.ScriptOnly = tutorialEnabled && IsTutorialRun;
+            TutorialScriptedDrawQueue.SuppressRefills = TutorialScriptedDrawQueue.ScriptOnly;
+            TutorialScriptedDrawQueue.FillCompositionsTo = 0;
+            _tutAudienceTurns = 0;
+            _pendingTurnIntro = null;
+            _pendingTurnIntro2 = null;
+            _loopDraws.Clear();
+            _lessonLoopSong = -1;
+            _lateLessons = false;
+            _lastSongFinishersDrawn = false;
+            _pausedForDialog = null;
+            TutorialScriptedDrawQueue.RefillHandCap = 0;
+            TutorialScriptedDrawQueue.OneCompositionPerLoop = false;
+            TutorialScriptedDrawQueue.CompositionUsedThisLoop = false;
+            TutorialCardPulse.ResetAll();
+            if (TutorialScriptedDrawQueue.ScriptOnly)
+            {
+                var drums = Resources.Load<CardDefinition>(TutorialFinisherPath);
+                if (drums != null)
+                {
+                    finisherCard = drums;
+                    TutorialHighlightSpawnHook.RegisterCardKey(drums.Id, "card_psychic_waves");
+                }
+                TutorialTrace.Note("guion de cartas activo | remate=" +
+                                   (finisherCard != null ? finisherCard.Id : "NINGUNO"));
+            }
+
             if (tutorialEnabled && !HasFired(TutorialTriggerId.YourTurn))
             {
                 FillForcedInitialHand();
@@ -158,6 +212,8 @@ namespace ALWTTT.Tutorial
 
             TutorialInputGate.PlayPressed += OnPlayPressed;
             if (controller != null) controller.DialogCompleted += OnDialogCompleted;
+            if (controller != null) controller.DialogShown += OnDialogShown;            // [S10]
+            ALWTTT.UI.PauseMenuController.InspectPauseChanged += OnInspectPause;      // [S10]
         }
 
         private void OnDisable()
@@ -173,10 +229,14 @@ namespace ALWTTT.Tutorial
             }
             TutorialInputGate.PlayPressed -= OnPlayPressed;
             if (controller != null) controller.DialogCompleted -= OnDialogCompleted;
+            if (controller != null) controller.DialogShown -= OnDialogShown;            // [S10]
+            ALWTTT.UI.PauseMenuController.InspectPauseChanged -= OnInspectPause;      // [S10]
+            TutorialCardPulse.ResetAll();
 
             TutorialInputGate.Clear();
             TutorialLoopHoldGate.Release();
             TutorialScriptedDrawQueue.Clear();
+            TutorialScriptedDrawQueue.ScriptOnly = false;   // [S10] never leaks into a normal gig
         }
 
         // ---------------- beat 2 forced hand ----------------
@@ -199,10 +259,16 @@ namespace ALWTTT.Tutorial
                 var primary = def != null
                     ? TutorialScriptedDrawQueue.ById(def.Id)
                     : fallbacks[i];
-                TutorialScriptedDrawQueue.Enqueue(new TutorialScriptedDrawQueue.Entry(
+                var entry = new TutorialScriptedDrawQueue.Entry(
                     label: def != null ? def.name : $"forced-slot-{i}",
                     primary: primary,
-                    fallback: fallbacks[i]));
+                    fallback: fallbacks[i]);
+                // [S10] Minimal tutorial: start with 2 (drums, bass); organ and voice arrive
+                // one per loop, so the first loop offers few choices.
+                if (TutorialScriptedDrawQueue.ScriptOnly && (i == 1 || i == 3))
+                    _loopDraws.Enqueue(entry);
+                else
+                    TutorialScriptedDrawQueue.Enqueue(entry);
             }
             Log($"Forced initial hand queued ({TutorialScriptedDrawQueue.Count} entries).");
         }
@@ -219,6 +285,9 @@ namespace ALWTTT.Tutorial
 
         private void OnGigStarted(GigStartedEvent e)
         {
+            TutorialTrace.ResetCount(); // [S10]
+            TutorialTrace.Note($"empieza el gig | tutorial={(TutorialEnabledFlag ? "sí" : "no")} " +
+                               $"mínimo={(IsTutorialRun ? "sí" : "no")} | {TutorialTrace.StateSnapshot()}");
             TryBeat(TutorialTriggerId.JamWelcome);
             TryBeat(TutorialTriggerId.YourTurn);
         }
@@ -226,6 +295,13 @@ namespace ALWTTT.Tutorial
         private void OnDialogCompleted(string id)
         {
             if (!TutorialEnabledFlag) return;
+
+            // [S10] A dialog that paused the game gives the time back when it closes.
+            if (_pausedForDialog != null && _pausedForDialog == id)
+            {
+                _pausedForDialog = null;
+                ALWTTT.UI.PauseMenuController.Instance?.ResumeInspect(id);
+            }
 
             switch (id)
             {
@@ -294,12 +370,19 @@ namespace ALWTTT.Tutorial
 
         private void OnCardPlayed(CardPlayedEvent e)
         {
+            if (e.Definition != null) TutorialCardPulse.Release(e.Definition.Id);   // [S10]
+            if (e.IsComposition && (e.Definition == null || !e.Definition.IsFinisher) &&
+                TutorialScriptedDrawQueue.OneCompositionPerLoop)
+                TutorialScriptedDrawQueue.CompositionUsedThisLoop = true;           // [S10] song 2
+
             if (e.IsComposition &&
                 TutorialInputGate.Mode == TutorialInputGate.GateMode.CompositionOnly)
             {
                 TutorialInputGate.Clear();
                 Log("beat 3 gate SATISFIED (composition played)");
-                TryBeat(TutorialTriggerId.TracksByMusician);
+                // [S10] Minimal run: straight to Play (TracksByMusician is not shown).
+                TryBeat(IsTutorialRun ? TutorialTriggerId.PressPlay
+                                      : TutorialTriggerId.TracksByMusician);
             }
 
             if (IsFinisher(e.Definition))
@@ -320,6 +403,7 @@ namespace ALWTTT.Tutorial
 
         private void OnPlayPressed()
         {
+            OnTutorialPlay();   // [S10] every real press, before the beat-5 gate check
             if (TutorialInputGate.Mode != TutorialInputGate.GateMode.PlayOnly) return;
             TutorialInputGate.Clear();
             Log("beat 5 gate SATISFIED (Play pressed)");
@@ -329,6 +413,24 @@ namespace ALWTTT.Tutorial
         private void OnLoopResolved(LoopResolvedEvent e)
         {
             if (!TutorialEnabledFlag) return;
+
+            // [S10] Minimal tutorial, first song: the next forced composition, one per loop.
+            if (TutorialScriptedDrawQueue.ScriptOnly && _loopDraws.Count > 0 && DeckManager.Instance != null)
+            {
+                var entry = _loopDraws.Dequeue();
+                bool ok = DeckManager.Instance.DrawCardFiltered(entry.Primary, "TUT loop: " + entry.Label);
+                if (!ok && entry.Fallback != null)
+                    DeckManager.Instance.DrawCardFiltered(entry.Fallback, "TUT loop (alternativa): " + entry.Label);
+            }
+
+            // [S10] A new loop: song 2's one-composition allowance comes back.
+            TutorialScriptedDrawQueue.CompositionUsedThisLoop = false;
+            // [S10] Song 3, end of the first loop: the track list and the combos.
+            if (IsTutorialRun && _lessonLoopSong != CurrentSongIndex())
+            {
+                _lessonLoopSong = CurrentSongIndex();
+                if (_lessonLoopSong == 2) TryBeat(TutorialTriggerId.TracksIntro);
+            }
 
             var ctx = e.Context;
 
@@ -358,6 +460,18 @@ namespace ALWTTT.Tutorial
             // per-loop flat grant, so the affordability check must run after
             // the grant lands.
             int loopsRemaining = ctx.LoopsInPart - (ctx.LoopIndexWithinPart + 1);
+
+            // [S10] Last song, last loop: the tutorial ends with a finisher, guaranteed.
+            if (IsTutorialRun && loopsRemaining == 1 && !_lastSongFinishersDrawn &&
+                CurrentSongIndex() == 2 && DeckManager.Instance != null)
+            {
+                _lastSongFinishersDrawn = true;
+                int drawn = 0;
+                for (int i = 0; i < 2; i++)
+                    if (DeckManager.Instance.DrawCardFiltered(IsFinisher, "TUT última canción: remate")) drawn++;
+                Debug.Log($"[S10][TUT] última canción, último loop: {drawn} remate(s) robados | " +
+                          TutorialTrace.StateSnapshot());
+            }
             if (loopsRemaining == 1 && !_beat8Requested &&
                 !HasFired(TutorialTriggerId.PlayFinisher))
             {
@@ -381,6 +495,7 @@ namespace ALWTTT.Tutorial
                 // se marca consumido para que no re-dispare en canciones
                 // posteriores (la lección ya ocurrió, solo que antes de tiempo).
                 Log("beat 8 fire — degrade (a): finisher ya jugado; variante 'early'");
+                TutorialTrace.Note("el remate ya se jugó antes del último loop: sale la variante 'early'"); // [S10]
                 TryBeat(TutorialTriggerId.PlayFinisherEarly);
                 controller?.MarkFiredWithoutShow(TutorialTriggerId.PlayFinisher);
                 return;
@@ -402,8 +517,21 @@ namespace ALWTTT.Tutorial
             bool affordable = pd != null && finisherCard != null &&
                 pd.CurrentInspiration >= finisherCard.InspirationCost;
 
+            // [S10] Minimal tutorial: the finisher lesson always happens. If ★ fall short,
+            // the manager lends what is missing (first smoke: ★=1 of 3, the beat was lost).
+            if (IsTutorialRun && available && !affordable && pd != null && GigManager.Instance != null)
+            {
+                int before = pd.CurrentInspiration;
+                GigManager.Instance.DevSetInspiration(finisherCard.InspirationCost);
+                affordable = pd.CurrentInspiration >= finisherCard.InspirationCost;
+                TutorialTrace.Note($"el tutorial presta ★ para el remate: {before} → {pd.CurrentInspiration}");
+            }
+
             if (!available || !affordable)
             {
+                TutorialTrace.Note($"el remate NO sale: en mano={(available ? "sí" : "no")}, " +
+                    $"★={(pd != null ? pd.CurrentInspiration : -1)} de {(finisherCard != null ? finisherCard.InspirationCost : -1)} " +
+                    $"| {TutorialTrace.StateSnapshot()}"); // [S10]
                 Log($"beat 8 DEGRADE (b): available={available} affordable={affordable} " +
                     $"(insp={(pd != null ? pd.CurrentInspiration : -1)} vs " +
                     $"cost={(finisherCard != null ? finisherCard.InspirationCost : -1)}) " +
@@ -437,6 +565,11 @@ namespace ALWTTT.Tutorial
 
         private void OnSongEnd(SongEndVibeEvent e)
         {
+            TutorialScriptedDrawQueue.SuppressRefills = false;   // [S10] refills back after song 1
+            _loopDraws.Clear();
+            // [S10] NOT a song counter: this event fires once per audience member.
+            TutorialScriptedDrawQueue.CompositionUsedThisLoop = false;
+            TutorialCardPulse.ClearWanted();
             TryBeat(TutorialTriggerId.SongEndVibe);
 
             // [TUT-REDESIGN-B / D-TUTB-6=B] Red de seguridad: si el arco se completó
@@ -459,8 +592,135 @@ namespace ALWTTT.Tutorial
             }
         }
 
+        // ---------------- [S10] 25-nov: per-song lessons, card pulse, Space pause ----------------
+        private int _lessonLoopSong = -1;
+        private bool _lateLessons;              // [S10] song 3: Spotlight + TrackReplaced allowed
+        private bool _lastSongFinishersDrawn;   // [S10] song 3, last loop: finishers guaranteed
+        private string _pausedForDialog;
+
+        private static int CurrentSongIndex()
+        {
+            var pd = GameManager.Instance != null ? GameManager.Instance.PersistentGameplayData : null;
+            return pd != null ? pd.CurrentSongIndex : -1;
+        }
+
+        /// <summary>[S10] Play pressed in the minimal tutorial. Song 1: the next composition
+        /// arrives right away and «one more each loop» is said WHILE loop 1 plays. Song 2: one
+        /// composition per loop, Capas and the Space pause, with the game paused.</summary>
+        private void OnTutorialPlay()
+        {
+            if (!TutorialEnabledFlag || !IsTutorialRun) return;
+            TutorialScriptedDrawQueue.CompositionUsedThisLoop = false;
+            int song = CurrentSongIndex();
+            if (song == 0 && !HasFired(TutorialTriggerId.LoopMore))
+            {
+                if (TutorialScriptedDrawQueue.ScriptOnly && _loopDraws.Count > 0 && DeckManager.Instance != null)
+                {
+                    var entry = _loopDraws.Dequeue();
+                    bool ok = DeckManager.Instance.DrawCardFiltered(entry.Primary, "TUT Tocar: " + entry.Label);
+                    if (!ok && entry.Fallback != null)
+                        DeckManager.Instance.DrawCardFiltered(entry.Fallback, "TUT Tocar (alternativa): " + entry.Label);
+                }
+                TryBeat(TutorialTriggerId.LoopMore);
+            }
+            else if (song == 1) TryBeat(TutorialTriggerId.LayersIntro);
+        }
+
+        private void OnDialogShown(string id)
+        {
+            bool lesson = id == TutorialTriggerId.TracksIntro || id == TutorialTriggerId.LayersIntro;
+            bool late = id == TutorialTriggerId.Spotlight || id == TutorialTriggerId.TrackReplaced;
+            var gm = ALWTTT.Managers.GigManager.Instance;
+            if (!lesson && !(late && IsTutorialRun && gm != null && gm.IsSongPlayingNow)) return;
+            // A lot to read: the game waits, and the cyan «new musician» hint starts.
+            if (lesson) TutorialCardPulse.MissingTrackMode = true;
+            var pause = ALWTTT.UI.PauseMenuController.Instance;
+            if (pause != null && !ALWTTT.UI.PauseGate.IsPaused)
+            {
+                _pausedForDialog = id;
+                pause.PauseInspect(id);
+            }
+            TutorialTrace.Note(id == TutorialTriggerId.LayersIntro
+                ? "una por loop: pausa automática y contorno celeste en las composiciones de un músico nuevo"
+                : id == TutorialTriggerId.TracksIntro ? "lista de pistas y combos: pausa automática"
+                : $"'{id}' con la canción sonando: pausa automática");
+        }
+
+        private void OnInspectPause(bool on, string who)
+        {
+            if (who == "jugador")
+                TutorialTrace.Note($"el jugador {(on ? "PAUSÓ" : "QUITÓ la pausa")} con Espacio | {TutorialTrace.StateSnapshot()}");
+        }
+
+        // ---------------- [S10 / D11=A] scripted hands, turns 2 and 3 ----------------
+        private const string TutorialFinisherPath = "Data/Characters/Musicians/c2_redoble_final";
+        private int _tutAudienceTurns;
+        private string _pendingTurnIntro;
+        private string _pendingTurnIntro2;
+        private readonly Queue<TutorialScriptedDrawQueue.Entry> _loopDraws =
+            new Queue<TutorialScriptedDrawQueue.Entry>();
+
+        private static void EnqueueScripted(string label, string id)
+        {
+            TutorialScriptedDrawQueue.Enqueue(new TutorialScriptedDrawQueue.Entry(
+                label, TutorialScriptedDrawQueue.ById(id), null));
+        }
+
+        private static void EnqueueAnyComposition(string label)
+        {
+            TutorialScriptedDrawQueue.Enqueue(new TutorialScriptedDrawQueue.Entry(
+                label, c => c != null && c.IsComposition && !c.IsFinisher, null));
+        }
+
+        private void QueueNextTurnHand()
+        {
+            _tutAudienceTurns++;
+            // A turn budget smaller than the script drops the tail; it never spills into the
+            // next turn (the key cards go first in each list).
+            TutorialScriptedDrawQueue.Clear();
+            if (_tutAudienceTurns == 1)
+            {
+                EnqueueScripted("turno 2: Calm Down", "crd_sibi_calm_down");
+                EnqueueScripted("turno 2: Static Rush", "starter_static_rush");
+                _pendingTurnIntro = TutorialTriggerId.AbilitiesIntro;
+                _pendingTurnIntro2 = TutorialTriggerId.OnYourOwn;
+                // Song 2: one composition per loop (Capas), few cards in hand.
+                TutorialScriptedDrawQueue.OneCompositionPerLoop = true;
+                TutorialScriptedDrawQueue.RefillHandCap = 4;
+            }
+            else if (_tutAudienceTurns == 2)
+            {
+                EnqueueScripted("turno 3: Spotlight", "crd_c2_spotlight");
+                EnqueueScripted("turno 3: Guino", "wink");
+                _pendingTurnIntro = TutorialTriggerId.StatusIntro;
+                // Song 3: free play (combos need several entries in the same loop).
+                TutorialScriptedDrawQueue.OneCompositionPerLoop = false;
+                TutorialScriptedDrawQueue.RefillHandCap = 5;
+                _lateLessons = true;
+                ApplySuppressionForArcState();
+            }
+            else return;
+            TutorialScriptedDrawQueue.FillCompositionsTo = 3;   // + compositions up to 3 in hand
+            TutorialTrace.Note($"mano del turno {_tutAudienceTurns + 1} en cola ({TutorialScriptedDrawQueue.Count} cartas)");
+        }
+
+        // The intro waits for the player's turn (there is no PlayerTurn event: polled, cheap).
+        private void Update()
+        {
+            if (_pendingTurnIntro == null) return;
+            var gig = GigManager.Instance;
+            if (gig == null || gig.CurrentGigPhase != ALWTTT.Enums.GigPhase.PlayerTurn) return;
+            var id = _pendingTurnIntro;
+            var id2 = _pendingTurnIntro2;
+            _pendingTurnIntro = null;
+            _pendingTurnIntro2 = null;
+            TryBeat(id);
+            if (id2 != null) TryBeat(id2);
+        }
+
         private void OnAudienceTurn(AudienceTurnStartedEvent e)
         {
+            if (TutorialScriptedDrawQueue.ScriptOnly) QueueNextTurnHand();   // [S10 / D11=A]
             TryBeat(TutorialTriggerId.AudienceTurn);
             // [TUT-REDESIGN-B / D-TUTB-6=B] AudienceTurn es el último beat guiado:
             // en cuanto dispara, el arco terminó y las identidades se sueltan.
@@ -482,6 +742,19 @@ namespace ALWTTT.Tutorial
         private void ApplySuppressionForArcState()
         {
             if (controller == null) return;
+
+            // [S10 / D1b=A] Minimal run: the allow-list decides for the whole gig.
+            if (IsTutorialRun)
+            {
+                controller.SetSuppressedTriggers(SupersededIds);
+                // [S10] Song 3 adds two reactive lessons: reading Spotlight, replacing a track.
+                var allow = new List<string>(MinimalTutorialAllow);
+                if (_lateLessons) { allow.Add(TutorialTriggerId.Spotlight); allow.Add(TutorialTriggerId.TrackReplaced); }
+                controller.SetAllowOnly(allow);
+                Log($"[S10] tutorial mínimo: solo {allow.Count} diálogos permitidos");
+                return;
+            }
+            controller.SetAllowOnly(null);
 
             bool arcPending = TutorialEnabledFlag &&
                               !HasFired(TutorialTriggerId.AudienceTurn);

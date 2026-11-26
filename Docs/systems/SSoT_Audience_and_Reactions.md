@@ -159,6 +159,12 @@ Captivated stacks. Captivated likewise does not touch `ResolveLoopEffect` output
 what crosses the Vibe boundary, keeping the single-gate property intact. Status spec:
 `SSoT_Status_Effects.md §5.8`.
 
+**Tall blocking cascade (S10, 2026-11-26).** A tall member that is not convinced blocks every non-tall member behind
+it (`GigManager.RecalculateAudienceObstructions`). At song end the payout runs **front to back** and `IsBlocked` is read
+**live**: when a tall member is convinced in that payout, `OnConvinced` recomputes the obstructions synchronously, so the
+member behind it collects its Vibe in the same payout. The Vibe projection walks the row the same way (`Uncovered` when it
+will be freed). Logs `[S10] Fin de canción | … sigue tapado / quedó descubierto`. Design home: `Design_Audience_Status_v1 §5.6`.
+
 **Form of the gate (BIGNUM-1, D-BN-6=A).** "One gate" is now materialised as two methods on
 `AudienceCharacterStats`: `PreviewIncomingVibe(statuses, incoming)` computes the gate and
 returns an `IncomingVibePreview` (applied amount, Indifference stacks, Captivated stacks and

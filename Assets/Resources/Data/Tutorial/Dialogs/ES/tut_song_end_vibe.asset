@@ -18,12 +18,8 @@ MonoBehaviour:
   revisitTitle: "El pago de la canci\xF3n"
   portrait: {fileID: 0}
   pages:
-  - "Fin de la canci\xF3n: todo el hype que construiste se convierte en DA\xD1O de
-    Vibe contra el p\xFAblico. Cada uno aguanta hasta {$audience_hp}. Vac\xEDasela
-    y es tuyo: convencido. As\xED se gana un concierto, canci\xF3n a canci\xF3n."
+  - "Fin de la canci\xF3n: el <link=hype>hype</link> que construiste se convierte
+    en da\xF1o de <link=vibe>Vibe</link>. A cero, ese oyente queda <link=convinced>convencido</link>."
   highlightKey: audience_vibe_bars
-  mechanicText: "Al <link=song_end>final de la canci\xF3n</link>, el <link=hype>Hype</link>
-    se convierte en da\xF1o de <link=vibe>Vibe</link> para cada miembro del p\xFAblico.
-    Las reservas de Vibe llegan hasta {$audience_hp}; a cero, el miembro queda <link=convinced>convencido</link>.
-    Los miembros <link=blocked>bloqueados</link> no reciben nada. Todos convencidos:
-    el concierto se gana al instante."
+  mechanicText: "Fin de la canci\xF3n: el <link=hype>hype</link> que construiste
+    se convierte en da\xF1o de <link=vibe>Vibe</link>. A cero, ese oyente queda <link=convinced>convencido</link>."

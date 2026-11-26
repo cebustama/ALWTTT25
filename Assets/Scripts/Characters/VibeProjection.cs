@@ -22,6 +22,9 @@
 
         /// <summary>IsBlocked (tall-member obstruction). Excluded upstream at song end.</summary>
         public bool Blocked;
+        /// <summary>[S10] Blocked now, but the tall member in front is projected to fall
+        /// first at song end, so this member is paid (Blocked is false then).</summary>
+        public bool Uncovered;
         /// <summary>Indifference stacks &gt; 0 on the member. Gate → 0.</summary>
         public bool Indifferent;
 

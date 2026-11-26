@@ -31,9 +31,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f0c03e5c84dd11a4898efbe7192c71e8, type: 2}
   - {fileID: 11400000, guid: 5b74aaab3570cc643a1c9f539a16e3c9, type: 2}
   testCardsMode: 0
-  useFixedDeck: 1
+  useFixedDeck: 0
   fixedDeckJson: "{ \"name\": \"smoke-5\", \"cards\": [\"starter_default_mode\",
     \"starter_wormus_major\",\n  \"conito_root_line\", \"starter_rise_up\", \"starter_default_mode\",
     \"starter_wormus_major\",\n  \"conito_root_line\", \"starter_rise_up\"] }"
-  usePinnedSongSeed: 1
+  usePinnedSongSeed: 0
   pinnedSongSeed: 655931081
+  usePinnedRunSeed: 0
+  pinnedRunSeed: 1

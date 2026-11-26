@@ -192,6 +192,12 @@ When `ApplyIncomingVibe` lands, `ModifyVibeSpec` negative deltas (which currentl
 
 ---
 
+### 5.6 Tall blocking cascade (S10, 2026-11-26)
+
+Why: in Ranas y Rayas the frog behind Rayas looked immune and the tutorial did not say why. Decision (Claudio): if the tall
+member in front falls at song end, the one behind collects its Vibe in that same payout, and the projection shows it.
+Levántate captivates the first tall member (D16 = A) so the player has a tool against it. Runtime: `SSoT_Audience_and_Reactions §5.3`.
+
 ## 6. Relationship to existing SSoTs
 
 This planning doc does not override any SSoT. At each batch closure, the implementing SSoT takes authority:

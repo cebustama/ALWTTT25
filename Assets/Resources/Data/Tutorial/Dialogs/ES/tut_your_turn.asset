@@ -18,11 +18,10 @@ MonoBehaviour:
   revisitTitle: Tu turno
   portrait: {fileID: 0}
   pages:
-  - "Tu turno. En la mano hay dos tipos de carta: las de COMPOSICI\xD3N construyen
-    la canci\xF3n; las de ACCI\xD3N cuidan a la banda y empujan al p\xFAblico. La
-    m\xFAsica primero. Siempre."
+  - "Tu turno. Las cartas de <link=composition_card>composici\xF3n</link> construyen
+    la canci\xF3n; las de <link=action_card>acci\xF3n</link> cuidan a la banda y
+    empujan al p\xFAblico. Cada m\xFAsico juega una de cada por <link=loop>loop</link>."
   highlightKey: hand
-  mechanicText: "Dos tipos de carta. Las <link=composition_card>cartas de composici\xF3n</link>
-    a\xF1aden m\xFAsica y van sobre la banda. Las <link=action_card>cartas de acci\xF3n</link>
-    cambian medidores y estados y van sobre un m\xFAsico o un miembro del p\xFAblico.
-    Algunas cuestan <link=inspiration>Inspiraci\xF3n</link>."
+  mechanicText: "Tu turno. Las cartas de <link=composition_card>composici\xF3n</link>
+    construyen la canci\xF3n; las de <link=action_card>acci\xF3n</link> cuidan a
+    la banda y empujan al p\xFAblico. Cada m\xFAsico juega una de cada por <link=loop>loop</link>."

@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e631fe99ddcdaca4c953ce2afe40356d, type: 3}
+  m_Name: tut_loop_more
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Tutorial.TutorialDialogSO
+  triggerId: tut_loop_more
+  priority: 65
+  category: 0
+  revisitTitle: "Una m\xE1s por loop"
+  portrait: {fileID: 0}
+  pages:
+  - "\xA1Ya suena! Mientras suena puedes sumar otra composici\xF3n: acaba de llegar
+    {$card:starter_wormus_major}. Ju\xE9gala ahora y entrar\xE1 en el pr\xF3ximo
+    loop. As\xED, loop a loop, la canci\xF3n crece."
+  highlightKey: 
+  mechanicText: "\xA1Ya suena! Mientras suena puedes sumar otra composici\xF3n: acaba
+    de llegar {$card:starter_wormus_major}. Ju\xE9gala ahora y entrar\xE1 en el pr\xF3ximo
+    loop. As\xED, loop a loop, la canci\xF3n crece."

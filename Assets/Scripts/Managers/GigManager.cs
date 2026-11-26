@@ -55,7 +55,10 @@ namespace ALWTTT.Managers
 
         // [ECON-2] Finisher fuera de su momento (último loop), tope por canción
         // o la canción ya tiene su loop extra.
-        FinisherTiming = 8
+        FinisherTiming = 8,
+
+        // [S10] Tutorial, song 2: one composition per loop, already used this loop.
+        OnePerLoop = 9
     }
 
     public class GigManager : MonoBehaviour
@@ -1198,7 +1201,7 @@ namespace ALWTTT.Managers
             int drawOnPlay = DevTuning.Int(DevTuning.Keys.DrawOnPlay, flow != null ? flow.DrawCardsOnPlay : 0);   // [DEV-TUNING-1]
             if (drawOnPlay > 0 && DeckManager.Instance != null)
             {
-                DeckManager.Instance.DrawCards(drawOnPlay);
+                DeckManager.Instance.DrawRefill(drawOnPlay, "al darle a Tocar");   // [S10]
             }
 
             // Inject dev overrides into the UI model before building the SongConfig
@@ -2036,6 +2039,13 @@ namespace ALWTTT.Managers
             if (pd != null)
             {
                 pd.CurrentSongIndex = 0;
+                // [S10] The menu's tutorial starts over: without this every dialog counted as
+                // already seen, so no forced hand and no dialogs (playtest 26-nov: empty hand).
+                if (pd.TutorialRun)
+                {
+                    pd.ClearFiredTutorials();
+                    Debug.Log("[S10][TUT] Reintentar: el tutorial empieza de nuevo (diálogos vistos borrados)");
+                }
             }
 
             Debug.Log($"{DebugTag} [B3-demo-polish / F5] HandleRetry → " +
@@ -2570,7 +2580,7 @@ namespace ALWTTT.Managers
             if (drawN > 0 && DeckManager.Instance != null)
             {
                 // DeckManager.DrawCards clamps to MaxCardsOnHand internally.
-                DeckManager.Instance.DrawCards(drawN);
+                DeckManager.Instance.DrawRefill(drawN, "fin de loop");   // [S10]
             }
 
             int inspirationDelta = 0;
@@ -3065,6 +3075,13 @@ namespace ALWTTT.Managers
             // 1) Tutorial directive gates (beats 3/5, beat-3 allow-list).
             if (ALWTTT.Tutorial.TutorialInputGate.BlocksCardDrag(def))
                 return UnplayableReason.TutorialGate;
+
+            // [S10] Tutorial, song 2: the other compositions wait for the next loop
+            // (playtest 25-nov: they silently refused to play).
+            if (def.IsComposition && !def.IsFinisher &&
+                ALWTTT.Tutorial.TutorialScriptedDrawQueue.OneCompositionPerLoop &&
+                ALWTTT.Tutorial.TutorialScriptedDrawQueue.CompositionUsedThisLoop)
+                return UnplayableReason.OnePerLoop;
 
             // 2) Domain gates.
             if (def.IsAction && !CanPlayActionCard(def))
@@ -3922,6 +3939,9 @@ namespace ALWTTT.Managers
         {
             public int AudienceIndex;
             public int Delta;
+            // [S10] Behind a tall member when the song ended. Paid anyway if that member
+            // falls earlier in the same payout (front to back): see RunSongVibeResolution.
+            public bool WasBlocked;
         }
 
         private List<AudienceVibeDelta> ComputeSongVibeDeltas(
@@ -3968,14 +3988,10 @@ namespace ALWTTT.Managers
             {
                 var audience = CurrentAudienceCharacterList[i];
                 if (audience == null) continue;
-                // Blocked chars get no vibe
-                if (audience.IsBlocked)
-                {
-                    if (UseVerboseLogs)   // [LOG-1] verbose: S5a is a closed milestone
-                        Debug.Log($"{DebugTag} [S5a-SMOKE] SONG-END   i={i} " +
-                            $"'{audience.CharacterId}' reason=IsBlocked (Immune, 0 Vibe)");
-                    continue;
-                }
+                // [S10] Blocked members are no longer dropped here: their delta is
+                // computed like everyone's and the payout checks IsBlocked LIVE, so a
+                // member uncovered when the tall one in front is convinced gets paid.
+                bool wasBlocked = audience.IsBlocked;
 
                 float avgImpression =
                     sampleCounts[i] > 0 ? totalImpression[i] / sampleCounts[i] : 0f; // [-2, 2]
@@ -3993,7 +4009,8 @@ namespace ALWTTT.Managers
                 result.Add(new AudienceVibeDelta
                 {
                     AudienceIndex = i,
-                    Delta = lPart
+                    Delta = lPart,
+                    WasBlocked = wasBlocked
                 });
             }
 
@@ -4527,6 +4544,17 @@ namespace ALWTTT.Managers
                 var audience = CurrentAudienceCharacterList[entry.AudienceIndex];
                 if (audience == null) continue;
 
+                // [S10] Tall-member cascade: the payout runs front to back and a convinced
+                // member re-runs RecalculateAudienceObstructions (OnConvinced), so a member
+                // behind a tall one that just fell is no longer blocked here.
+                if (audience.IsBlocked)
+                {
+                    Debug.Log($"[S10] Fin de canción | '{audience.CharacterId}' sigue tapado por un Alto: 0 Vibe");
+                    continue;
+                }
+                if (entry.WasBlocked)
+                    Debug.Log($"[S10] Fin de canción | '{audience.CharacterId}' quedó descubierto (cayó el Alto de delante): cobra su Vibe");
+
                 // L-part (SongHype x impressionFactor), pre-Flow, from ComputeSongVibeDeltas.
                 int lPart = entry.Delta;
 
@@ -4656,12 +4684,13 @@ namespace ALWTTT.Managers
         // song end (ComputeSongVibeDeltas skips the member), so Final = 0 there whatever
         // the gate says. Nothing here mutates state.
         private VibeProjection BuildVibeProjection(int index, AudienceCharacterBase aud,
-            float baseVibe, int sfxPart)
+            float baseVibe, int sfxPart, bool blocked)
         {
             var p = new VibeProjection();
             p.HypeBase = baseVibe;
             p.Sfx = sfxPart;
-            p.Blocked = aud.IsBlocked;
+            p.Blocked = blocked;
+            p.Uncovered = aud.IsBlocked && !blocked;
             p.AvgImpression = Mathf.Clamp(GetLiveAvgImpression(index), -2f, 2f);
 
             // §6.1 — same function as ComputeSongVibeDeltas, floored at 0 like there.
@@ -4759,6 +4788,9 @@ namespace ALWTTT.Managers
 
             if (CurrentAudienceCharacterList == null) return;
 
+            // [S10] Blocking is walked front to back like the payout: a tall member
+            // projected to fall (Ko) no longer covers the members behind it.
+            bool coveredFromHere = false;
             for (int i = 0; i < CurrentAudienceCharacterList.Count; i++)
             {
                 var aud = CurrentAudienceCharacterList[i];
@@ -4768,7 +4800,12 @@ namespace ALWTTT.Managers
                 // projection walks the SAME steps as the song-end payout, gate included
                 // (Indifference → 0, Captivated amplification), via BuildVibeProjection.
                 // The S5a "mirrors song-end math" copy of §6.1 is gone (D-BN-10=A).
-                var proj = BuildVibeProjection(i, aud, baseVibe, sfxPart);
+                bool blockedAtPayout = coveredFromHere && !aud.IsTall;
+                var proj = BuildVibeProjection(i, aud, baseVibe, sfxPart, blockedAtPayout);
+                if (aud.IsTall && aud.Stats != null && !aud.Stats.IsConvinced && !proj.Ko)
+                    coveredFromHere = true;
+                if (proj.Uncovered && reason == "loop")
+                    Debug.Log($"[S10] Proyección | '{aud.CharacterId}' tapado ahora, pero el Alto de delante cae: proyecta {proj.Final}");
 
                 aud.AudienceCharacterCanvas.SetVibeTelegraph(
                     in proj,
@@ -4803,6 +4840,7 @@ namespace ALWTTT.Managers
             _previewPromisedBigNum = -1;
             _previewShownCombo = null;
             SetComboOutlines(null, null);   // [COMBOS-1]
+            TrackEntryMarks.Clear();        // [S10]
         }
 
         // ── [COMBOS-1] Combos de banda ───────────────────────────────────────
@@ -4830,12 +4868,13 @@ namespace ALWTTT.Managers
             public int ChainLoops;        // loops con entrada en la canción, este incluido
             public float Multiplier = 1f; // Capas
             public bool FinalLoop;        // loop final (Finisher)
+            public readonly List<string> Entering = new List<string>(); // [S10] quién entra en el loop
 
             public int HandBonusBigNum { get { int s = 0; foreach (var b in HandBonus) s += b; return s; } }
 
             public void Clear()
             {
-                HandNames.Clear(); HandBonus.Clear(); HandMusicians.Clear();
+                HandNames.Clear(); HandBonus.Clear(); HandMusicians.Clear(); Entering.Clear();
                 ExtendsChain = false; ChainLoops = 0; Multiplier = 1f; FinalLoop = false;
             }
 
@@ -4866,6 +4905,7 @@ namespace ALWTTT.Managers
             if (_session == null || meters == null) return;
 
             _session.GetLoopEntries(ctx.Tracks, _comboIds, _comboRoles, out bool wholeBandTogether, out _);
+            ev.Entering.AddRange(_comboIds);   // [S10] the track list marks these rows
 
             // La banda completa por primera vez (el bonus de LEGIB-1a, sin cambios).
             if (meters.FullBandBonusBigNum > 0 && _session.FullBandEnteredThisLoop(ctx.Tracks, out _))
@@ -4880,7 +4920,8 @@ namespace ALWTTT.Managers
             // Parejas que entran a la vez. Si entra la banda entera de golpe, la mano es
             // «Toda la banda» y las parejas no cuentan (D1: la mejor mano).
             int pair = ComboPairBonus;
-            if (!wholeBandTogether && pair > 0)
+            // [S10] Si se completa la banda, solo «¡Toda la banda!» (playtest 26-nov), entre de golpe o no.
+            if (!wholeBandTogether && !ev.HasHand(ComboFullBand) && pair > 0)
             {
                 TryPair(ctx, ev, TrackRole.Rhythm, TrackRole.Bassline, ComboRhythmSection, pair);
                 TryPair(ctx, ev, TrackRole.Backing, TrackRole.Melody, ComboIntimate, pair);
@@ -4899,11 +4940,17 @@ namespace ALWTTT.Managers
             string ida = null, idb = null;
             foreach (var t in ctx.Tracks)
             {
-                if (string.IsNullOrEmpty(t.MusicianId) || !_comboIds.Contains(t.MusicianId)) continue;
+                if (string.IsNullOrEmpty(t.MusicianId)) continue;   // [S10] suena al final del loop
                 if (t.Role == a && ida == null) ida = t.MusicianId;
                 if (t.Role == b && idb == null) idb = t.MusicianId;
             }
             if (ida == null || idb == null) return;
+            // [S10] Regla de la pareja (playtest 26-nov): al final del loop suenan los dos,
+            // entró al menos uno de ellos y NADIE MÁS entró en este loop. Si ya estaba la
+            // batería y entra el bajo, hay Sección rítmica; si además entra el piano, se pierde.
+            if (!_comboIds.Contains(ida) && !_comboIds.Contains(idb)) return;
+            foreach (var id in _comboIds)
+                if (id != ida && id != idb) return;
             var ids = new List<string> { ida };
             if (idb != ida) ids.Add(idb);
             AddHand(ev, name, bonus, ids);
@@ -4927,7 +4974,8 @@ namespace ALWTTT.Managers
                 && (exceptHandsOf == null || ev.Multiplier > exceptHandsOf.Multiplier + 1e-4f);
             if (showMult)
                 parts.Add(ev.FinalLoop ? $"GRAN CIERRE {FormatMult(ev.Multiplier)}" : $"CAPAS {FormatMult(ev.Multiplier)}");
-            return parts.Count == 0 ? null : string.Join(" · ", parts);
+            // [S10] One row each (playtest 26-nov): the hands with their +X, then the multiplier.
+            return parts.Count == 0 ? null : string.Join("\n", parts);
         }
 
         private string DescribeCombos(ComboEval ev)
@@ -5061,7 +5109,7 @@ namespace ALWTTT.Managers
 
             var sb = new System.Text.StringBuilder();
             sb.Append("<size=120%><b>COMBOS</b></size>   <size=80%><alpha=#99>(C para cerrar)</size><alpha=#FF>\n");
-            sb.Append("<alpha=#99><size=80%>Cuenta quién ENTRA a tocar en el mismo loop.</size><alpha=#FF>\n\n");
+            sb.Append("<alpha=#99><size=80%>Pareja: suenan los dos, entra al menos uno en el loop y nadie más.</size><alpha=#FF>\n\n");
             sb.Append("<b>Combo<pos=26%>Quién<pos=62%>Vale<pos=74%>Esta canción</b>\n");
 
             void Row(string name, string who, string value, string song, bool possible)
@@ -5091,7 +5139,7 @@ namespace ALWTTT.Managers
                 chain == 0 ? "—" : $"cadena {chain} · {FormatMult(multNow)}", step > 1f);
             Row("Gran cierre", "el Finisher", "Capas",
                 _session != null && _session.CurrentLoopIsBonus ? FormatMult(multNow) : "—", step > 1f);
-            sb.Append("\n<alpha=#99><size=80%>Si la banda entera entra de golpe, solo cuenta ¡Toda la banda!.\n" +
+            sb.Append("\n<alpha=#99><size=80%>¡Toda la banda!: los cuatro suenan a la vez por primera vez en la canción.\n" +
                       $"Capas se acumula: {FormatMult(step)} en el 2.º loop con entrada nueva, {FormatMult(step * step)} en el 3.º… y dura toda la canción.</size>");
 
             canvas.SetComboTable(true, sb.ToString());
@@ -5285,12 +5333,15 @@ namespace ALWTTT.Managers
                 _previewShownDef = null;
                 _previewShownY = _previewShownZ = -1;
                 SetComboOutlines(null, null);   // [COMBOS-1]
+                TrackEntryMarks.Clear();        // [S10]
                 return;
             }
 
             int y = CurrentBigNum();
             int zRest = PreviewBigNumAtLoopEnd(restCtx, out string restBonus, _comboRest);
             _previewPromisedBigNum = zRest;
+            // [S10] Track list: the rows that enter this loop, and the combo each one completes.
+            TrackEntryMarks.Set(_comboRest.Entering, _comboRest.HandNames, _comboRest.HandMusicians);
 
             var def = _previewDef;
             LoopFeedbackContext withCard = default;
@@ -5319,7 +5370,7 @@ namespace ALWTTT.Managers
             _previewShownCombo = comboLine;
             canvas.SetVibeReadoutPreview(y, z, cardOk, comboLine);
             if (changed && comboLine != null)
-                Debug.Log($"{DebugTag} {ComboTag} PREVIEW combo: «{comboLine}» | " +
+                Debug.Log($"{DebugTag} {ComboTag} PREVIEW combo: «{comboLine.Replace("\n", " / ")}» | " +
                     $"{(cardOk ? "carta " + DescribeCombos(_comboCard) + " | " : "")}reposo {DescribeCombos(_comboRest)}");
 
             if (!changed) return;

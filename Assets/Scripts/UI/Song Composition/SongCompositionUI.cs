@@ -201,6 +201,35 @@ namespace ALWTTT.UI
 
         #region Public API
 
+        // [S10] Play (and its «Tocar» label) only between songs: hidden while a song plays
+        // and during the audience turn (playtest 25-nov).
+        private void Update()
+        {
+            if (!playButton) return;
+            var gig = GigManager.Instance;
+            if (gig == null) return;   // ship jam: untouched
+            bool show = gig.CurrentGigPhase == GigPhase.PlayerTurn && !gig.IsSongPlayingNow;
+            if (playButton.gameObject.activeSelf != show) playButton.gameObject.SetActive(show);
+            if (playButtonLabel != null && playButtonLabel.gameObject.activeSelf != show)
+                playButtonLabel.gameObject.SetActive(show);
+
+            // [S10] Play pulses whenever it shows: each turn a NEW song starts there, and with
+            // the previous song still ringing players missed it (playtest 26-nov).
+            if (show && _playOutline == null)
+            {
+                var rects = new System.Collections.Generic.List<RectTransform> { (RectTransform)playButton.transform };
+                if (playButtonLabel != null) rects.Add(playButtonLabel.rectTransform);
+                _playOutline = ALWTTT.Tutorial.TutorialTracksOutline.Build("S10 Contorno de Tocar", rects, false, 8f);
+            }
+            else if (!show && _playOutline != null)
+            {
+                Destroy(_playOutline);
+                _playOutline = null;
+            }
+        }
+
+        private GameObject _playOutline;
+
         public void HookPlayButton(Action onPlay)
         {
             if (!playButton) return;

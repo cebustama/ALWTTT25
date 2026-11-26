@@ -48,6 +48,30 @@ namespace ALWTTT.Map
 
             public string title = "Gig";
             [TextArea] public string description;
+
+            // [S10 / D5=A] Random node: when this list has options, the node shows
+            // randomTitle/randomDescription and plays ONE of these gigs, drawn by weight
+            // from the run seed (same seed, same gig). launchConfig/title/description
+            // above are then ignored. Empty list = fixed node, as before.
+            [Tooltip("[S10] Random node: one of these gigs, drawn by weight from the run " +
+                "seed. Empty = fixed node (launchConfig above).")]
+            public List<RandomOption> randomOptions = new List<RandomOption>();
+            public string randomTitle = "?";
+            [TextArea] public string randomDescription = "Nadie sabe quién vendrá esta noche.";
+
+            public bool IsRandom => randomOptions != null && randomOptions.Count > 0;
+        }
+
+        // [S10 / D5=A] One possible gig of a random node.
+        [Serializable]
+        public class RandomOption
+        {
+            public DemoLaunchConfigSO launchConfig;
+            [Min(0f), Tooltip("Relative weight: 1 and 1 = 50 % each; 3 and 1 = 75 % / 25 %.")]
+            public float weight = 1f;
+            [Tooltip("Shown once the node has been played.")]
+            public string title = "Gig";
+            [TextArea] public string description;
         }
 
         // [MAP-DEMO-2] Gigs the band already played before the demo starts:
@@ -312,9 +336,19 @@ namespace ALWTTT.Map
                     Locked = i > _activeIndex,
                 };
 
+                // [S10] A random node keeps its «?» until it has been played.
+                string title = n.title, description = n.description;
+                if (n.IsRandom)
+                {
+                    var pick = ResolveRandom(n, i);
+                    bool revealed = state.Completed && pick != null;
+                    title = revealed ? pick.title : n.randomTitle;
+                    description = revealed ? pick.description : n.randomDescription;
+                }
+
                 n.visual.UseBoundTooltipOnly = true;
                 n.visual.Bind(state, isBoss ? bossColor : gigColor,
-                    n.title, n.description, sprite: null, scale: nodeScale);
+                    title, description, sprite: null, scale: nodeScale);
 
                 if (state.Completed) n.visual.SetCompleted(true);
                 else if (state.Locked) SetAlpha(n.visual, lockedAlpha);
@@ -403,6 +437,13 @@ namespace ALWTTT.Map
 
             var node = nodes[index];
             var config = node.launchConfig;
+            string nodeTitle = node.title;
+            if (node.IsRandom)
+            {
+                var pick = ResolveRandom(node, index, log: true);
+                config = pick != null ? pick.launchConfig : null;
+                if (pick != null) nodeTitle = pick.title;
+            }
             string reason = "launchConfig is null.";
             if (config == null || !config.IsValid(out reason))
             {
@@ -437,10 +478,10 @@ namespace ALWTTT.Map
             int previous = pd.LinearMapNextNode;
             pd.LinearMapNextNode = index + 1; // consumed at launch (D-MAP-DEMO-2=A)
 
-            Debug.Log($"{DebugTag} Launch node {index} '{node.title}' | " +
+            Debug.Log($"{DebugTag} Launch node {index} '{nodeTitle}' | " +
                       $"Encounter={config.Encounter.GetLabel()} | Boss={isBoss} | " +
                       $"PreserveRunState={runConfig.preserveRunState}");
-            Debug.Log($"[S5] Map → Gig | node {index} '{node.title}' | " +
+            Debug.Log($"[S5] Map → Gig | node {index} '{nodeTitle}' | " +
                       $"returns to {gigReturnDestination}");
 
             _launching = GigLauncher.Launch(
@@ -465,6 +506,66 @@ namespace ALWTTT.Map
             _launching = true; // one transition per click
             Debug.Log($"[S5] Map → Ship | NextNode={_activeIndex}");
             sceneChanger.OpenShipScene();
+        }
+
+        /// <summary>
+        /// [S10] Rolls the run seed if this run has none yet. MainMenu calls it on a fresh
+        /// run (with the dev settings, so a pinned seed wins); the map calls it lazily
+        /// (dev = null) for scenes opened directly in the editor.
+        /// </summary>
+        public static int EnsureRunSeed(PersistentGameplayData pd, GigDevSettingsSO dev)
+        {
+            if (pd == null) return 0;
+            if (pd.RunSeed != 0) return pd.RunSeed;
+
+            bool pinned = dev != null && dev.UsePinnedRunSeed;
+            int seed = pinned ? dev.PinnedRunSeed : 0;
+            while (seed == 0) seed = Guid.NewGuid().GetHashCode() & int.MaxValue;
+            pd.RunSeed = seed;
+            Debug.Log($"[S10] Semilla de partida = {seed} ({(pinned ? "fijada en GigDevSettings" : "al azar")})");
+            return seed;
+        }
+
+        // [S10 / D5=A] Deterministic weighted draw: the same run seed and node index
+        // always give the same option, so the node can be re-bound (map re-entered,
+        // tooltip after the gig) without re-rolling.
+        private RandomOption ResolveRandom(LinearMapNode node, int index, bool log = false)
+        {
+            var pd = PD;
+            int seed = EnsureRunSeed(pd, null);
+
+            float total = 0f;
+            foreach (var o in node.randomOptions)
+                if (o != null && o.launchConfig != null && o.weight > 0f) total += o.weight;
+            if (total <= 0f)
+            {
+                Debug.LogError($"{DebugTag} [S10] Nodo aleatorio {index}: ninguna opción válida " +
+                               "(falta launchConfig o el peso es 0).");
+                return null;
+            }
+
+            var rng = new System.Random(unchecked(seed * 486187739 + (index + 1) * 16777619));
+            double roll = rng.NextDouble() * total;
+            RandomOption chosen = null;
+            double acc = 0;
+            foreach (var o in node.randomOptions)
+            {
+                if (o == null || o.launchConfig == null || o.weight <= 0f) continue;
+                acc += o.weight;
+                chosen = o;
+                if (roll < acc) break;
+            }
+
+            if (log)
+            {
+                var parts = new List<string>();
+                foreach (var o in node.randomOptions)
+                    if (o != null && o.launchConfig != null && o.weight > 0f)
+                        parts.Add($"{o.title} {100f * o.weight / total:0.#}%");
+                Debug.Log($"[S10] Nodo aleatorio {index} | semilla={seed} | " +
+                          $"opciones: {string.Join(", ", parts)} | sale: {chosen?.title}");
+            }
+            return chosen;
         }
 
         // [S6 NAVE-2] Same format as DemoLaunchConfigSO.ToRunConfig, but from

@@ -379,11 +379,11 @@ namespace ALWTTT.Tooltips
 
             canvasGroup.alpha = 0;
 
-            yield return new WaitForSeconds(delay);
+            yield return new WaitForSecondsRealtime(delay);   // [S10] also during the Space pause
 
             while (true)
             {
-                timer += Time.deltaTime;
+                timer += Time.unscaledDeltaTime;
 
                 var invValue = Mathf.InverseLerp(0, showDelayTime, timer);
                 canvasGroup.alpha = fadeCurve.Evaluate(invValue);

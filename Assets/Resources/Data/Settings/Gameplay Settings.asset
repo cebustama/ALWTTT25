@@ -32,8 +32,8 @@ MonoBehaviour:
   useBandSetup: 1
   setupPickCount: 2
   setupPoolSize: -1
-  maxCohesion: 10
-  initialCohesion: 10
+  maxCohesion: 3
+  initialCohesion: 3
   baseConflictChance: 20
   perConflictCohesionPenalty: 2
   cohesionRestoredByBandTalk: 2
@@ -42,6 +42,7 @@ MonoBehaviour:
   actionCardPool: []
   compositionCardPool: []
   drawCount: 2
+  initialHandCount: 4
   maxCardsOnHand: 8
   maxInspiration: 5
   discardHandBetweenTurns: 1

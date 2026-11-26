@@ -14,6 +14,39 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-11-26 — S10 ALINEACIÓN-2 + TUTORIAL: la demo se aprende jugando y se juega con cualquier formación (DEMO-1211, orden 10)
+
+**Qué cambió (implemented semantics + operational).**
+- **Menú** (D1a = A, D3 = A, D7 = B): «Tutorial» reemplaza a Continuar y lanza `LaunchConfig - Tutorial` (cuarteto fijo, independiente de la
+  elección de formación); «Pruebas» abre GigSetup; Opciones con su maqueta corregida por código y pantalla completa. El menú se recablea en
+  runtime (`MainMenuController`). Preparación por menú *ALWTTT ▸ S10* (`S10_DemoSetupTool`).
+- **Tutorial mínimo** (D1b = A, D11 = A, D12, D15 = A): manos guionizadas (`TutorialScriptedDrawQueue`), habilidades en el turno 2, estados en
+  el 3, **Redoble Final** (solo de batería) como Finisher; la canción 2 enseña Capas con «una composición por loop» y el velo rojo; la 3 es libre
+  con combos. Contornos dorados (pistas, Cohesión, Tocar en cada turno), enlaces de carta con tooltip, nombres de músico en verde con su ícono
+  (D18 = A, sprite asset `musicos`). Reintentar borra los diálogos vistos. Textos ✦ IA por revisar (ficha en «Textos pendientes»).
+- **Alineaciones** (D2 = A): Dúo, Trío y Cuarteto juegan el gig 1 sin diálogos de músicos ausentes; log `[S10] Mazo por músico`.
+- **Mapa** (D5 = A): el gig 1 es un nodo «?» (Ranas y Rayas / Tentáculos, pesos editables) resuelto con la semilla de la partida
+  (`LinearMapController.EnsureRunSeed`; semilla fija opcional en `GigDevSettings`, avisada al hacer build).
+- **Cohesión** (D6 = A): máximo e inicial 3. **Perder un gig de la demo resta 2** (`cohesionPenaltyOnLoss` 0 → 2 en los cuatro gigs y en
+  `Elenco_S7.json`).
+- **Pausa con Espacio** (D9): música, loops y tiempo congelados con la mano inspeccionable. SFX de pausa y de reanudar (scratch y su reversa)
+  por una fuente propia con volumen, paso bajo, velocidad y precarga (`PauseMenuController`).
+- **Combos** (playtest): una pareja cuenta si suenan los dos, entró al menos uno y nadie más; «¡Toda la banda!» (los cuatro a la vez por
+  primera vez) anula las parejas. Filas del combo en su propio texto bajo el Big Num. Filas de pista con contorno celeste (entra) y naranja
+  (hace combo) (`TrackEntryMarks`). → `SSoT_Scoring_and_Meters §3.5`.
+- **Cascada del Alto**: el bloqueo se comprueba en vivo al cobrar el final de canción, de delante hacia atrás; si el Alto cae, el de detrás cobra
+  su Vibe, y la previsión lo muestra igual. → `SSoT_Audience_and_Reactions §5.3`.
+- **Levántate** (D16 = A) cautiva al primer Alto (`ActionTargetType.AudienceTall`); recuadro «Al jugarla» en el tooltip de las composiciones
+  con efecto. → `SSoT_Card_System §10.4.2`.
+- **Balance**: Rana Azul 40 → 30 de vida. Filtro de logs por categoría (`LogFilter`, `LogFilterSettingsSO`).
+- **Aplazado**: gigs desde JSON (D4 = B) y zoom dramático (D8 = A) → S11; identidad del solo de Sibi (D10 = B) → sesión de música;
+  identidad de cartas (D17) → POST-DEMO C10; combos de tres y mejorables → C2; Dúo y exceso de cartas → C11.
+- **Deuda**: `Elenco_S7.json` desfasado del asset (Rana Azul 18 vs 30): reimportarlo pisa la vida. El log de Reintentar sale dos veces.
+
+**Smokes**: 1 (tutorial y cascada), 2 (Dúo, nodo «?», vuelta al mapa) y 3 (Opciones y Cohesión 3 → 1) PASS, jugados por Claudio.
+
+---
+
 ## 2026-11-23 — MUSICA-1c: bajos afinados de oído, Jazz Funk y Ziggy con voces y melodías que se recuerdan
 
 **Clase:** semántico · operativo. Código de juego y de editor, assets de cartas y voces; cambios de MidiGenPlay pedidos por Claudio en la misma sesión (su changelog: MGP-BASS-JAZZ-1, J10, MGP-MEL-FORM-1, CHORDFIT-1, HOLD-1, BLUES-1, RISE-1, RESOLVE-1, RIFF-1). Suite de MidiGenPlay en verde.

@@ -157,7 +157,7 @@ namespace ALWTTT.Data
         [SerializeField, Range(0f, 1f), Tooltip("Live volume applied to every " +
             "non-solo channel for the duration of the solo loop. 1 = no duck. " +
             "Composes multiplicatively with the mix; it does not overwrite it.")]
-        private float bonusSoloDuck01 = 0.55f;
+        private float bonusSoloDuck01 = 0.7f;
 
         public int MaxBonusLoopsPerPart => Mathf.Max(0, maxBonusLoopsPerPart);
         public bool BonusSoloEnabled => bonusSoloEnabled;

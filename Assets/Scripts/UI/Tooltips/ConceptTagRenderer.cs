@@ -22,6 +22,14 @@ namespace ALWTTT.Tooltips
             new Regex(@"<link=""?(?<id>[A-Za-z0-9_]+)""?>(?<body>.*?)</link>",
                       RegexOptions.Compiled | RegexOptions.Singleline);
 
+        /// <summary>[S10] Combo names (ids combo_*) get their own colour: concepts gold,
+        /// card names blue, combos orange like the combo rows at the top right.</summary>
+        public const string ComboColorHex = "F07818";
+
+        /// <summary>[S10] &lt;link=card__ID&gt;: a card name in tutorial text, its tooltip built
+        /// from the card itself (not a glossary concept).</summary>
+        public const string CardLinkPrefix = "card__";
+
         private const string OpenLiteral = "<link=";
         private const string CloseLiteral = "</link>";
 
@@ -38,6 +46,7 @@ namespace ALWTTT.Tooltips
             return LinkRx.Replace(text, m =>
             {
                 string id = m.Groups["id"].Value;
+                if (id.StartsWith(CardLinkPrefix, StringComparison.Ordinal)) return m.Value;   // [S10]
                 if (!resolver.IsKnown(id))
                 {
                     if (onUnknown != null && (reported ??= new HashSet<string>(StringComparer.OrdinalIgnoreCase)).Add(id))
@@ -45,9 +54,13 @@ namespace ALWTTT.Tooltips
                     return m.Value;                       // plain: TMP ignores the bare link tag
                 }
                 string body = m.Groups["body"].Value;
+                // [S10] An icon (sprite) keeps its look: no underline, no colour.
+                if (body.IndexOf("<sprite", StringComparison.Ordinal) >= 0)
+                    return "<link=" + id + ">" + body + "</link>";
                 if (underline) body = "<u>" + body + "</u>";
                 if (bold) body = "<b>" + body + "</b>";      // [S4b / D7=A] tooltip look
-                return "<link=" + id + "><color=#" + hex + ">" + body + "</color></link>";
+                string h = id.StartsWith("combo_", StringComparison.OrdinalIgnoreCase) ? ComboColorHex : hex;
+                return "<link=" + id + "><color=#" + h + ">" + body + "</color></link>";
             });
         }
 

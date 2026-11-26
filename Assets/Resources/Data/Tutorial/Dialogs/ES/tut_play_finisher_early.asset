@@ -18,12 +18,8 @@ MonoBehaviour:
   revisitTitle: Te adelantaste
   portrait: {fileID: 0}
   pages:
-  - "\xDAltimo loop. Ahora puedes jugar Psychic Wa... \xBFQu\xE9? \xBFNo me estabas
-    escuchando, novato? Te adelantaste. En fin: el remate ya son\xF3. La pr\xF3xima
-    vez gu\xE1rdalo para el cierre, que es cuando la mente del p\xFAblico est\xE1
-    m\xE1s blanda. Y recuerda: cada m\xFAsico tiene el suyo."
+  - "Te adelantaste con el remate, pero son\xF3. La pr\xF3xima vez gu\xE1rdalo: brilla
+    en el \xFAltimo loop."
   highlightKey: 
-  mechanicText: "Psychic Waves se jug\xF3 antes del \xFAltimo <link=loop>loop</link>.
-    No se pierde nada: las <link=action_card>cartas de acci\xF3n</link> act\xFAan
-    al jugarse. Se ped\xEDa el \xFAltimo loop porque entonces las <link=composition_card>cartas
-    de composici\xF3n</link> est\xE1n bloqueadas."
+  mechanicText: "Te adelantaste con el remate, pero son\xF3. La pr\xF3xima vez gu\xE1rdalo:
+    brilla en el \xFAltimo loop."

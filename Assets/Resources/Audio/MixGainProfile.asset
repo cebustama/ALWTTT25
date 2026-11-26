@@ -15,7 +15,7 @@ MonoBehaviour:
   entries:
   - musicianId: 2
     role: 4
-    gain: 0.5
+    gain: 1.1
   - musicianId: 1
     role: 3
     gain: 1.2

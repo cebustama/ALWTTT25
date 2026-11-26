@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e631fe99ddcdaca4c953ce2afe40356d, type: 3}
+  m_Name: tut_tracks_intro
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Tutorial.TutorialDialogSO
+  triggerId: tut_tracks_intro
+  priority: 67
+  category: 0
+  revisitTitle: Pistas y combos
+  portrait: {fileID: 0}
+  pages:
+  - "Arriba a la izquierda, tu canci\xF3n: una fila por m\xFAsico. Ahora entran varias
+    por loop. Completa una pareja sin meter a nadie m\xE1s en ese loop y hay combo:
+    <link=combo_rhythm_section>Secci\xF3n r\xEDtmica</link> o <link=combo_media_luz>A
+    media luz</link>; con los cuatro sonando, <link=combo_full_band>\xA1Toda la banda!</link>
+    Fila celeste: entra; naranja: hace combo. <b>C</b>: la tabla."
+  highlightKey: song_panel_tracks
+  mechanicText: "Arriba a la izquierda, tu canci\xF3n: una fila por m\xFAsico. Ahora
+    entran varias por loop. Completa una pareja sin meter a nadie m\xE1s en ese loop
+    y hay combo: <link=combo_rhythm_section>Secci\xF3n r\xEDtmica</link> o <link=combo_media_luz>A
+    media luz</link>; con los cuatro sonando, <link=combo_full_band>\xA1Toda la banda!</link>
+    Fila celeste: entra; naranja: hace combo. <b>C</b>: la tabla."

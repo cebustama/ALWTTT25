@@ -215,5 +215,18 @@ namespace ALWTTT.Data
 
         public bool UsePinnedSongSeed => usePinnedSongSeed;
         public int PinnedSongSeed => pinnedSongSeed;
+
+        // --- Pinned run seed [S10] ---
+
+        [Header("Pinned run seed [S10]")]
+        [SerializeField, Tooltip("When on, every new run uses the seed below instead of a random " +
+            "one: the random map node (and anything else drawn from the run seed) comes out the same. " +
+            "Applied when the Main Menu starts a run.")]
+        private bool usePinnedRunSeed = false;
+
+        [SerializeField, Min(1)] private int pinnedRunSeed = 1;
+
+        public bool UsePinnedRunSeed => usePinnedRunSeed;
+        public int PinnedRunSeed => pinnedRunSeed;
     }
 }

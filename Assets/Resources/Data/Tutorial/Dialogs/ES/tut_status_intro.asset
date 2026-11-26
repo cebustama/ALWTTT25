@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e631fe99ddcdaca4c953ce2afe40356d, type: 3}
+  m_Name: tut_status_intro
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Tutorial.TutorialDialogSO
+  triggerId: tut_status_intro
+  priority: 20
+  category: 0
+  revisitTitle: Estados
+  portrait: {fileID: 0}
+  pages:
+  - "\xDAltima canci\xF3n: los estados. {$card:crd_c2_spotlight} pone a Robot C2
+    bajo el <link=spotlight>Foco</link>: recibe los golpes del p\xFAblico. {$card:wink}
+    deja <link=captivated>Cautivado</link> a un oyente. \xDAsalo en Rayas: es <link=tall>Alto</link>
+    y, mientras no caiga, la rana de atr\xE1s no recibe <link=vibe>Vibe</link>. Cuando
+    caiga, s\xED. {$card:starter_rise_up} tambi\xE9n cautiva al Alto."
+  highlightKey: 
+  mechanicText: "\xDAltima canci\xF3n: los estados. {$card:crd_c2_spotlight} pone
+    a Robot C2 bajo el <link=spotlight>Foco</link>: recibe los golpes del p\xFAblico.
+    {$card:wink} deja <link=captivated>Cautivado</link> a un oyente. \xDAsalo en
+    Rayas: es <link=tall>Alto</link> y, mientras no caiga, la rana de atr\xE1s no
+    recibe <link=vibe>Vibe</link>. Cuando caiga, s\xED. {$card:starter_rise_up} tambi\xE9n
+    cautiva al Alto."

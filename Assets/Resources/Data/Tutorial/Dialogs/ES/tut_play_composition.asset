@@ -18,11 +18,10 @@ MonoBehaviour:
   revisitTitle: "Juega una composici\xF3n"
   portrait: {fileID: 0}
   pages:
-  - "Juega una carta de composici\xF3n: arr\xE1strala a la banda. Cada carta lleva
-    el nombre de su m\xFAsico y cae sobre \xE9l, da igual d\xF3nde la sueltes. Cada
-    una a\xF1ade algo real a la canci\xF3n. No es decorado, es m\xFAsica."
+  - "Arrastra una carta de composici\xF3n hacia arriba y su\xE9ltala en cualquier
+    parte del escenario. Cada carta ya sabe qu\xE9 m\xFAsico la toca: su pista se
+    suma a la canci\xF3n."
   highlightKey: card_default_mode
-  mechanicText: "Arrastra la <link=composition_card>carta de composici\xF3n</link>
-    sobre la banda. Se resuelve sobre el m\xFAsico indicado en la carta, se suelte
-    donde se suelte, y escribe en la <link=track>pista</link> de ese m\xFAsico. Punt\xFAa
-    en cada <link=loop>loop</link> en que suena."
+  mechanicText: "Arrastra una carta de composici\xF3n hacia arriba y su\xE9ltala
+    en cualquier parte del escenario. Cada carta ya sabe qu\xE9 m\xFAsico la toca:
+    su pista se suma a la canci\xF3n."

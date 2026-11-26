@@ -47,4 +47,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 793a7616c5067714084890c544908d70, type: 2}
   - {fileID: 11400000, guid: 1c1155aebef9c774abce86969957b745, type: 2}
   - {fileID: 11400000, guid: aad913b8d232aea4a96d37c19c6777a9, type: 2}
+  - {fileID: 11400000, guid: 7c2b0eeb5d2f24747b4890a618da560c, type: 2}
+  - {fileID: 11400000, guid: 5c1fae735cd382d4e97747c03a67d39d, type: 2}
+  - {fileID: 11400000, guid: c7279ecf3b3a458468fa36c9824208ef, type: 2}
+  - {fileID: 11400000, guid: 3ddba91b648994043b61e4b883be1272, type: 2}
+  - {fileID: 11400000, guid: 71289f5367bb18e41a789844d37cb37c, type: 2}
+  - {fileID: 11400000, guid: 8a5bb64db4ac0544e9d2d1cbeabe6972, type: 2}
+  - {fileID: 11400000, guid: 26fd8dfcdbbd0c547a21aaf4662b746d, type: 2}
   languageCode: es

@@ -58,6 +58,30 @@ namespace ALWTTT.Tutorial
 
         public static void Clear() => _queue.Clear();
 
+        /// <summary>[S10 / D11=A] Minimal tutorial: the turn draw takes ONLY the scripted
+        /// entries (no random draw, no M4.5 guarantees) and the draw-on-Play / draw-per-loop
+        /// refills are skipped. Card effects that draw (Static Rush) still draw.</summary>
+        public static bool ScriptOnly { get; set; }
+
+        /// <summary>[S10] Tutorial, first song: no refills (draw on Play / per loop); its
+        /// cards arrive by script, one per loop.</summary>
+        public static bool SuppressRefills { get; set; }
+
+        /// <summary>[S10] Tutorial turn draw: after the script, draw compositions until the
+        /// hand holds this many (finishers excluded). 0 = script only. Prevents the soft lock
+        /// of a hand without compositions.</summary>
+        public static int FillCompositionsTo { get; set; }
+
+        /// <summary>[S10] Tutorial refills (on Play, per loop) stop at this many cards in hand.
+        /// 0 = the normal hand maximum. Keeps few options and room for the turn-3 script.</summary>
+        public static int RefillHandCap { get; set; }
+
+        /// <summary>[S10] Tutorial, song 2: one composition per loop (each new musician adds Capas).</summary>
+        public static bool OneCompositionPerLoop { get; set; }
+
+        /// <summary>[S10] A composition was already played in this loop (or before Play).</summary>
+        public static bool CompositionUsedThisLoop { get; set; }
+
         /// <summary>Convenience: id match by CardDefinition.Id OR asset name
         /// (starter assets are authored with matching names; robust to either).</summary>
         public static Func<CardDefinition, bool> ById(string cardId) =>

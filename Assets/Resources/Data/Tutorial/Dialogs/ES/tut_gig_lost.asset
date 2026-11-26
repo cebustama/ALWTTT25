@@ -18,10 +18,8 @@ MonoBehaviour:
   revisitTitle: Concierto perdido
   portrait: {fileID: 0}
   pages:
-  - "Se acab\xF3 y no cayeron todos. Pasa. La m\xFAsica no perdona los cierres flojos:
-    la pr\xF3xima vez guarda Inspiraci\xF3n para el final y remata. Venga, otra vez
-    desde arriba."
+  - Se acabaron las canciones y no cayeron todos. Guarda <link=inspiration><sprite="brillo"
+    index=0></link> para los remates y vuelve a intentarlo.
   highlightKey: 
-  mechanicText: "El <link=gig>concierto</link> se pierde cuando su \xFAltima canci\xF3n
-    termina con alguien sin convencer, o cuando la <link=cohesion>Cohesi\xF3n</link>
-    llega a cero por <link=breakdown>colapsos</link> de m\xFAsicos."
+  mechanicText: Se acabaron las canciones y no cayeron todos. Guarda <link=inspiration><sprite="brillo"
+    index=0></link> para los remates y vuelve a intentarlo.

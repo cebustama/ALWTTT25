@@ -18,11 +18,18 @@ namespace ALWTTT.UI
     {
         public static bool IsPaused { get; private set; }
 
+        /// <summary>[S10 / D9] Paused with Space: the world is frozen but the hand can still be
+        /// looked at (hover, tooltips, preview). No card can be picked up or played.</summary>
+        public static bool InspectOnly { get; private set; }
+
         /// <summary>Only PauseMenuController calls this.</summary>
-        public static void Set(bool paused) => IsPaused = paused;
+        public static void Set(bool paused) { IsPaused = paused; if (!paused) InspectOnly = false; }
+
+        /// <summary>Only PauseMenuController calls this.</summary>
+        public static void SetInspectOnly(bool on) => InspectOnly = on && IsPaused;
 
         // Enter-Play-Mode without domain reload keeps statics alive; start unpaused.
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetOnLoad() => IsPaused = false;
+        private static void ResetOnLoad() { IsPaused = false; InspectOnly = false; }
     }
 }

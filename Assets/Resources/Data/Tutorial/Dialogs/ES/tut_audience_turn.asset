@@ -18,11 +18,10 @@ MonoBehaviour:
   revisitTitle: "Turno del p\xFAblico"
   portrait: {fileID: 0}
   pages:
-  - "Ahora les toca a ellos. Cada personaje del p\xFAblico tiene sus propias ma\xF1as:
-    unos golpean el Stress de tus m\xFAsicos, su reserva de entereza (a cero, colapso),
-    y otros se cubren entre s\xED. M\xEDralos bien antes de tu siguiente turno."
+  - "Ahora act\xFAa el p\xFAblico: sube el <link=stress>Stress</link> de tus m\xFAsicos.
+    Si llega al m\xE1ximo, el m\xFAsico colapsa y la banda pierde <link=cohesion>Cohesi\xF3n</link>.
+    Sin Cohesi\xF3n, se acab\xF3 la gira."
   highlightKey: audience_area
-  mechanicText: "Tras el turno del jugador, cada miembro del p\xFAblico act\xFAa
-    por su cuenta: algunos reducen el <link=stress>Stress</link> de un m\xFAsico,
-    otros se mueven al frente, otros no hacen nada. Los estados del p\xFAblico avanzan
-    ahora. Despu\xE9s, nuevo turno del jugador."
+  mechanicText: "Ahora act\xFAa el p\xFAblico: sube el <link=stress>Stress</link>
+    de tus m\xFAsicos. Si llega al m\xE1ximo, el m\xFAsico colapsa y la banda pierde
+    <link=cohesion>Cohesi\xF3n</link>. Sin Cohesi\xF3n, se acab\xF3 la gira."

@@ -39,6 +39,8 @@ namespace ALWTTT.UI
         // the full sprite tinted with cohesionPipEmptyTint.
         [Header("Cohesion pips (COH-1)")]
         [SerializeField] private RectTransform cohesionPipRoot;
+        /// <summary>[S10] The hearts row, for the tutorial's gold outline.</summary>
+        public RectTransform CohesionPipRoot => cohesionPipRoot;
         [SerializeField] private Image cohesionPipPrefab;
         [SerializeField] private Sprite cohesionPipFull;
         [SerializeField] private Sprite cohesionPipEmpty;
@@ -541,8 +543,9 @@ namespace ALWTTT.UI
 
         // ── [COMBOS-1 / D3] Línea de combo y multiplicador que el Big Num «absorbe» ──
         [Header("COMBOS-1: combos")]
-        [SerializeField, Range(0.3f, 1f), Tooltip("[COMBOS-1] Tamaño de la línea de combo bajo «Y → Z».")]
-        private float comboLineScale = 0.45f;
+        [SerializeField, Tooltip("[S10] Tamaño de letra de las filas de combo bajo «Y → Z» " +
+                                 "(su propio texto: el número tiene autoajuste y lo encogía todo).")]
+        private float comboRowsFontSize = 46f;
         [SerializeField, Tooltip("[COMBOS-1] Color de la línea de combo.")]
         private Color comboLineColor = new Color(1f, 0.62f, 0.15f, 1f);
         [SerializeField, Tooltip("[COMBOS-1] Color del multiplicador que vuela al Big Num.")]
@@ -714,17 +717,18 @@ namespace ALWTTT.UI
         {
             if (vibeReadoutLabel == null) return;
 
-            // [COMBOS-1 / D3] Segunda línea: el combo que el loop (o la carta) completa,
-            // con su valor. Va en la misma etiqueta: nada que montar en el editor.
-            string combo = string.IsNullOrEmpty(comboLine) ? string.Empty
-                : $"\n<size={Mathf.RoundToInt(comboLineScale * 100f)}%><color=#{ColorUtility.ToHtmlStringRGBA(comboLineColor)}>{comboLine}</color></size>";
+            // [COMBOS-1 / D3] The combo the loop (or the card) completes, with its value.
+            // [S10] In its own text under the number, one row per line: inside the number's
+            // label, its auto-size shrank the number AND the combo (playtest 26-nov).
+            bool hasCombo = !string.IsNullOrEmpty(comboLine);
 
             // [LEGIB-1a / D6 amended by Claudio] At rest, no change = no arrow: the plain
             // number already says "this loop adds nothing". A projected card keeps
             // «Y → Y», which answers the hover question "what does this card do?".
-            if (!cardProjected && y == z && combo.Length == 0)
+            if (!cardProjected && y == z && !hasCombo)
             {
                 WriteReadout(y.ToString());
+                ShowComboRows(null);
                 _readoutPreviewOn = false;
                 return;
             }
@@ -737,12 +741,56 @@ namespace ALWTTT.UI
             int pct = Mathf.RoundToInt(scale * 100f);
             string forecast = (!cardProjected && y == z) ? $"{y}"
                 : $"{y}<size={pct}%><color=#{ColorUtility.ToHtmlStringRGBA(color)}>{arrow}{z}</color></size>";
-            WriteReadout(forecast + combo);
+            WriteReadout(forecast);
+            ShowComboRows(comboLine);
             _readoutPreviewOn = true;
+        }
+
+        // [S10] The combo rows: a text built once, right-aligned under the number.
+        private TextMeshProUGUI _comboRows;
+
+        private void ShowComboRows(string rows)
+        {
+            if (string.IsNullOrEmpty(rows) || vibeReadoutLabel == null)
+            {
+                if (_comboRows != null) _comboRows.gameObject.SetActive(false);
+                return;
+            }
+            if (_comboRows == null)
+            {
+                var go = new GameObject("S10 Filas de combo", typeof(RectTransform));
+                var rt = (RectTransform)go.transform;
+                rt.SetParent(vibeReadoutLabel.rectTransform.parent, false);
+                rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+                rt.pivot = new Vector2(1f, 1f);
+                rt.sizeDelta = new Vector2(900f, 220f);
+                _comboRows = go.AddComponent<TextMeshProUGUI>();
+                _comboRows.font = vibeReadoutLabel.font;
+                _comboRows.enableAutoSizing = false;
+                _comboRows.alignment = TextAlignmentOptions.TopRight;
+                _comboRows.textWrappingMode = TextWrappingModes.NoWrap;
+                _comboRows.richText = true;
+                _comboRows.raycastTarget = false;
+                _comboRows.lineSpacing = -6f;
+            }
+            _comboRows.fontSize = comboRowsFontSize;
+            _comboRows.color = comboLineColor;
+            _comboRows.text = rows;
+            _comboRows.gameObject.SetActive(true);
+
+            // Right edge and bottom of the number as drawn (the label's rect is larger).
+            var lrt = vibeReadoutLabel.rectTransform;
+            vibeReadoutLabel.ForceMeshUpdate();
+            var b = vibeReadoutLabel.textBounds;
+            Vector3 corner = b.size.sqrMagnitude > 0f
+                ? new Vector3(b.max.x, b.min.y, 0f)
+                : new Vector3(lrt.rect.xMax, lrt.rect.yMin, 0f);
+            _comboRows.rectTransform.position = lrt.TransformPoint(corner);
         }
 
         public void ClearVibeReadoutPreview()
         {
+            ShowComboRows(null);
             if (!_readoutPreviewOn) return;
             _readoutPreviewOn = false;
             if (vibeReadoutLabel != null && _readoutTotal >= 0)
@@ -760,6 +808,7 @@ namespace ALWTTT.UI
 
             if (!visible)
             {
+                ShowComboRows(null);
                 if (vibeReadoutLabel != null) vibeReadoutLabel.text = string.Empty;
                 if (vibeReadoutTooltip != null) vibeReadoutTooltip.Clear();
             }

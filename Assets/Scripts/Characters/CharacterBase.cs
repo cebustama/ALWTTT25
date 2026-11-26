@@ -139,7 +139,13 @@ namespace ALWTTT.Characters
         private static readonly RaycastHit[] _pickBuffer = new RaycastHit[16];
 
         public static bool RaycastTopmost(Ray ray, float maxDistance, LayerMask mask,
-            out RaycastHit best)
+            out RaycastHit best) => RaycastTopmost(ray, maxDistance, mask, null, out best);
+
+        /// <summary>[S10] Same pick, but only among characters <paramref name="accept"/> admits
+        /// (card targeting: a musician card ignores the audience drawn in front of Conito, an
+        /// audience card ignores the musicians in front of the crowd).</summary>
+        public static bool RaycastTopmost(Ray ray, float maxDistance, LayerMask mask,
+            System.Func<ICharacter, bool> accept, out RaycastHit best)
         {
             best = default;
             int n = Physics.RaycastNonAlloc(ray, _pickBuffer, maxDistance, mask);
@@ -149,6 +155,7 @@ namespace ALWTTT.Characters
             {
                 var h = _pickBuffer[i];
                 var ch = h.collider.GetComponent<ICharacter>();
+                if (accept != null && (ch == null || !accept(ch))) continue;
                 var sr = ch != null && ch.GetCharacterBase() != null
                     ? ch.GetCharacterBase().SpriteRenderer : null;
                 int layer = sr != null ? SortingLayer.GetLayerValueFromID(sr.sortingLayerID) : int.MinValue;

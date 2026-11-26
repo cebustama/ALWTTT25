@@ -60,12 +60,16 @@ lo cierran D-PLAN-19 y la revisión tras la demo. Hasta el 11-dic manda `DEMO-12
 | # | Sesión | Objetivo | Origen |
 | --- | --- | --- | --- |
 | C1 | **PUB-SHIELD-1** | Si no llegó antes de la demo (D-PLAN-11 = B, orden 9): público con escudo | D-PLAN-11 |
-| C2 | **COMBOS-2** | Combos que se desbloquean con la relación entre músicos (sala chill) | `ideas/2026-11-05_combos_de_banda.md` |
+| C2 | **COMBOS-2** | Combos que se desbloquean con la relación entre músicos (sala chill). Además (S10, 26-nov): combos de **tres** músicos, para que casi siempre se gatille «algo» (hoy, con ritmo + bajo + acordes sonando, entrar la voz da solo ¡Toda la banda!); y combos que **se mejoran** durante la partida, al estilo de las manos de *Balatro* | `ideas/2026-11-05_combos_de_banda.md`; playtest S10 |
 | C3 | **CARTAS-MATIAS** | Las cartas nuevas de Matías que piden mecánica nueva | pedido #15 |
 | C4 | **READ-ROOM-2** | Rediseñar Read the Room (o retirarla): que no quede obsoleta al conocer los gustos | minuta 12-nov, punto 4 |
 | C5 | **NERVIOSO-1** | Qué deja el colapso a largo plazo: «Nervioso» con notas falsas | `ideas/2026-11-11_nervioso.md`, D9 |
 | C6 | **OLEADAS-1** | Repertorio de gigs por oleadas (un gig por mecánica, luego mezclas) | `ideas/2026-11-11_oleadas_y_repertorio_de_gigs.md` |
 | C7 | **SIBI-COLMENA** | La interacción única de la Reina con Sibi («anularlo» o «llamarlo a la colmena») | ARRANQUE S9, D3 «Después» |
+| C8 | **GUSTOS-2** | Público con gustos que den uso a cada carta: uno que prefiere la música triste o la alegre (Wormus Mayor y Menor por fin importan); uno al que le gusta la rápida y NO la lenta; las larvas de la Reina que se «duermen» con música lenta y no hacen daño | playtest S10 (26-nov) |
+| C9 | **RAYAS-HABLA** | Rayas adora el bajo y lo dice en voz alta: lo pide cuando no suena y lo celebra cuando entra (primer público que comenta la canción) | playtest S10 (26-nov) |
+| C10 | **IDENTIDAD-CARTAS** | Que cada carta se distinga al jugarla (D17 de S10): efecto al jugarla, economía, figura musical en MidiGenPlay. Levántate ya cautiva al Alto (S10, D16 = A) | S10, D17 |
+| C11 | **DUO-1** | El juego no está pensado para el Dúo (smoke 2 de S10, 26-nov): con dos músicos, cada pareja que entra completa «¡Toda la banda!» casi todos los loops; y sobran cartas (la mano llega a 8). Revisar robo, tope de mano y combos por tamaño de banda | smoke 2 S10 |
 
 ## Bloque D · Mundo y contenido
 
@@ -91,6 +95,7 @@ lo cierran D-PLAN-19 y la revisión tras la demo. Hasta el 11-dic manda `DEMO-12
 - `vendedor.png` duplicado; `nave espacial.png` (31 MB) en `Resources/`; `CohesionPipsView` duplica `GigCanvas.SetCohesion`.
 - F-TIP-7 (fichas apiladas en el tutorial); iconos de objetivo con contorno en lugar del disco.
 - *Company Name* de Unity («DefaultCompany»); separar build de testers y build pública.
+- La barra de loops con ancho fijo: al añadir loops, que se estrechen las divisiones en lugar de alargarse la barra (playtest S10, 26-nov).
 - Ideas sin bloque todavía: nombres de salas siempre visibles (si M6 lo pide); colocar la banda a mano (D5 C).
 
 ## Orden recomendado (✦ IA)

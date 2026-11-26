@@ -44,7 +44,7 @@ MonoBehaviour:
   overloadHypeFactor: 1.5
   maxBonusLoopsPerPart: 1
   bonusSoloEnabled: 1
-  bonusSoloDuck01: 0.55
+  bonusSoloDuck01: 0.7
   songTailEnabled: 1
   songTailLevel01: 0.7
   songTailFadeSeconds: 0.75

@@ -2229,6 +2229,18 @@ namespace ALWTTT.Managers
                 _bakedGain01ByChannel[_bal1Ch] = _bal1Src != null ? _bal1Src[_bal1Ch] : 1f;
             _pendingChannelGains = null;
 
+            // [S10] Remember the last loop without a solo (tail repeats excluded).
+            if (!_tailReplaying)
+            {
+                if (!_nextPlayIsSolo)
+                {
+                    _plainKey = key;
+                    _plainData = data;
+                    for (int ch = 0; ch < 16; ch++) _plainGains[ch] = _bakedGain01ByChannel[ch];
+                }
+                _nextPlayIsSolo = false;
+            }
+
             // Rebuild markers/timelines from the exact bytes we are going to play
             RebuildMarkersFromData(data);
 
@@ -2897,6 +2909,20 @@ namespace ALWTTT.Managers
         }
         private TailHandoff _handoff;
 
+        // [S10] The tail replays the last loop WITHOUT a solo (Claudio: «que el solo sea algo
+        // especial»). Every non-solo playback is remembered with its baked gains; a solo
+        // loop (finisher / bonus / drum solo: a transient render) is not.
+        private bool _nextPlayIsSolo;
+        private string _plainKey;
+        private byte[] _plainData;
+        private readonly float[] _plainGains = new float[16];
+
+        /// <summary>[S10] Called by CompositionSession right before a loop's playback.</summary>
+        public void MarkNextPlayAsSolo(bool solo) => _nextPlayIsSolo = solo;
+
+        /// <summary>[S10] True while the loop about to play carries a solo.</summary>
+        public bool NextPlayIsSolo => _nextPlayIsSolo;
+
         /// <summary>[SONG-TAIL-1] True from StartSongTail until the handoff or any stop path.</summary>
         public bool IsSongTailActive => _tailActive;
 
@@ -2941,6 +2967,15 @@ namespace ALWTTT.Managers
             // queued them; the replayed bytes still carry their baked CC7, so the live
             // re-assert would stomp it. Keep the gains of the last loop for every repeat.
             for (int ch = 0; ch < 16; ch++) _tailBakedGains[ch] = _bakedGain01ByChannel[ch];
+
+            // [S10] If the last loop was a solo, the tail goes back to the song as it was.
+            if (_plainData != null && !ReferenceEquals(_plainData, _currentPlayData))
+            {
+                _currentKey = _plainKey;
+                _currentPlayData = _plainData;
+                for (int ch = 0; ch < 16; ch++) _tailBakedGains[ch] = _plainGains[ch];
+                Debug.Log("[S10] Cola de canción: sin el solo (vuelve al último loop sin solo).");
+            }
 
             _tailLevel01 = Mathf.Clamp01(level01);
             _tailHandoffLeadMs = Mathf.Max(0f, handoffLeadMs);

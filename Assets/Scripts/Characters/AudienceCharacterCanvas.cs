@@ -636,6 +636,7 @@ namespace ALWTTT.Characters
         {
             var tm = TooltipManager.Instance;
             if (tm == null) return;
+            if (ALWTTT.Tutorial.TutorialOverlayView.AnyShowing) return;   // [S10]
             if (_tooltipAnchor != null)
             {
                 var offset = tm.Style != null ? tm.Style.AudienceColumnOffset : FallbackColumnOffset;

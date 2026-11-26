@@ -667,7 +667,7 @@
       "venueType": "Venue1",
       "numberOfSongs": 1,
       "fansOnWin": 0,
-      "cohesionPenaltyOnLoss": 0,
+      "cohesionPenaltyOnLoss": 2,
       "audience": [ "rana_rosa", "rana_azul", "rayas" ],
       "addToGigSetupRoster": true,
       "launchConfig": { "path": "Assets/Settings/Gig/LaunchConfig - Ranas y Rayas.asset", "copyFrom": "" }
@@ -678,7 +678,7 @@
       "venueType": "Venue1",
       "numberOfSongs": 1,
       "fansOnWin": 0,
-      "cohesionPenaltyOnLoss": 0,
+      "cohesionPenaltyOnLoss": 2,
       "audience": [ "tentaculos" ],
       "addToGigSetupRoster": true,
       "launchConfig": { "path": "Assets/Settings/Gig/LaunchConfig - Tentaculos.asset", "copyFrom": "", "requiredSongCount": 4 }
@@ -689,7 +689,7 @@
       "venueType": "Venue1",
       "numberOfSongs": 1,
       "fansOnWin": 0,
-      "cohesionPenaltyOnLoss": 0,
+      "cohesionPenaltyOnLoss": 2,
       "audience": [ "big_guy", "kid", "cooldude", "influencer" ],
       "addToGigSetupRoster": true,
       "launchConfig": { "path": "Assets/Settings/Gig/LaunchConfig - El jefe y su banda.asset", "copyFrom": "" }
@@ -700,7 +700,7 @@
       "venueType": "Venue2",
       "numberOfSongs": 4,
       "fansOnWin": 0,
-      "cohesionPenaltyOnLoss": 0,
+      "cohesionPenaltyOnLoss": 2,
       "audience": [
         "reina_gusano"
       ],

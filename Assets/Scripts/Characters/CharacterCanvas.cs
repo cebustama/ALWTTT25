@@ -342,6 +342,7 @@ namespace ALWTTT.Characters
             Camera cam, float delayShow, TooltipKind kind)
         {
             if (tooltipManager == null) return;
+            if (ALWTTT.Tutorial.TutorialOverlayView.AnyShowing) return;   // [S10]
             tooltipManager.ShowTooltip(
                 content, header, tooltipStaticTransform, cam, delayShow, kind: kind);
         }

@@ -462,6 +462,13 @@ namespace ALWTTT.Music
 #endif
             !ALWTTT.Tutorial.TutorialLoopHoldGate.IsArmed;
 
+        /// <summary>[S10] IsFinalLoopRunning without the tutorial-hold and dev terms.</summary>
+        private bool IsLastOrdinaryLoopSounding =>
+            _isPlaying &&
+            (_state == CompositionState.BuildingNextPart ||
+             _state == CompositionState.PlayingCurrentPart) &&
+            _loopsRemainingForPart - _bonusLoopsPendingForPart == 1;
+
         private void ResetBonusLoopState()
         {
             _bonusLoopsPendingForPart = 0;
@@ -493,6 +500,18 @@ namespace ALWTTT.Music
         /// performing musicians. The set is recomputed every loop, so a track added
         /// mid-loop animates on the same loop its stem is re-rendered.
         /// </summary>
+        /// <summary>[S10] Musicians with a track in the part a card played NOW would land in
+        /// (same routing as the play path: the sounding part while a loop runs).</summary>
+        public HashSet<string> GetMusicianIdsWithTrackNow()
+        {
+            var model = _ctx?.CompositionUI?.Model;
+            if (model == null) return new HashSet<string>();
+            bool loopIsRunning = _isPlaying &&
+                (_state == CompositionState.BuildingNextPart
+                 || _state == CompositionState.PlayingCurrentPart);
+            return GetMusicianIdsWithTrackInPart(loopIsRunning ? _currentPartIndex : model.CurrentPartIndex);
+        }
+
         public HashSet<string> GetMusicianIdsWithTrackInPart(int partIndex)
         {
             var set = new HashSet<string>();
@@ -1462,7 +1481,12 @@ namespace ALWTTT.Music
             if (_currentLoopIsBonus)
             { text = "El loop final ya empezó."; return false; }
 
-            if (rules.finisherOnlyFinalLoop && !IsFinalLoopRunning)
+            // [S10] The tutorial's hold (beat 8) keeps IsFinalLoopRunning false on purpose
+            // (CARD-UX-1 waste-deny), but it holds the last loop precisely so the finisher
+            // can be played: under the hold, the last ordinary loop counts as final.
+            bool finalForFinisher = IsFinalLoopRunning ||
+                (ALWTTT.Tutorial.TutorialLoopHoldGate.IsArmed && IsLastOrdinaryLoopSounding);
+            if (rules.finisherOnlyFinalLoop && !finalForFinisher)
             { text = "El Finisher solo se juega en el último loop."; return false; }
 
             if (rules.maxFinishersPerSong > 0 && _finishersPlayedThisSong >= rules.maxFinishersPerSong)
@@ -1960,6 +1984,11 @@ namespace ALWTTT.Music
             }
 
             var partName = _ctx.CompositionUI.Model.parts[partIndex].label;
+
+            // [S10] Tell the transport whether this loop carries a solo BEFORE the singer
+            // is armed: the song tail replays the last loop WITHOUT a solo, so the solo
+            // stays special (the singer reads the same flag for what it re-sings).
+            mm.MarkNextPlayAsSolo(transientRender);
 
             // [SINGER-1] Announce before PlayRaw so the singer is armed when
             // OnSongStarted fires. Subscriber failures must never kill the loop.

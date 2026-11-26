@@ -400,6 +400,7 @@ MonoBehaviour:
   setupRoster: {fileID: 11400000, guid: 4db3245de131fc445a26dba1ca1b7f17, type: 2}
   flowSettings: {fileID: 11400000, guid: 02e51bab3b739bc498b5d2f0c97ae6e5, type: 2}
   optionsPanel: {fileID: 175657866}
+  tutorialLaunchConfig: {fileID: 11400000, guid: 5fa42e609c904bd4ebee82434bdfd43e, type: 2}
 --- !u!1 &1246036101
 GameObject:
   m_ObjectHideFlags: 0

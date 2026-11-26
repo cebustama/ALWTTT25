@@ -30,6 +30,7 @@ namespace ALWTTT.EditorTools
                 if (so.TestCardsGiveMode != GigDevSettingsSO.TestCardsMode.Off) on.Add($"cartas TEST ({so.TestCardsGiveMode})");
                 if (so.UseFixedDeck) on.Add("mazo fijo");
                 if (so.UsePinnedSongSeed) on.Add($"semilla fijada ({so.PinnedSongSeed})");
+                if (so.UsePinnedRunSeed) on.Add($"semilla de partida fijada ({so.PinnedRunSeed})"); // [S10]
                 if (on.Count > 0) found.Add((so, on));
             }
             if (found.Count == 0)
@@ -64,6 +65,7 @@ namespace ALWTTT.EditorTools
                     s.FindProperty("testCardsMode").enumValueIndex = 0; // Off
                     s.FindProperty("useFixedDeck").boolValue = false;
                     s.FindProperty("usePinnedSongSeed").boolValue = false;
+                    s.FindProperty("usePinnedRunSeed").boolValue = false; // [S10]
                     s.ApplyModifiedPropertiesWithoutUndo();
                     EditorUtility.SetDirty(f.so);
                 }

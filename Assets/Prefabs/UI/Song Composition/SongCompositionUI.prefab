@@ -499,9 +499,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: c86230b64f8667b44898929ad95cef66, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 78d0b3529c22dba4ab01ad87ab493aa1, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -567,12 +567,10 @@ MonoBehaviour:
   songTitleText: {fileID: 3677504112887416288}
   songThemeText: {fileID: 1599455420439241164}
   playButton: {fileID: 806289028202966153}
+  playButtonLabel: {fileID: 0}
   partsLayout: {fileID: 6610820338164849875}
   partElementPrefab: {fileID: 4428995020587336389, guid: 57e435a81c6c4ca47af6f66b0cd38afc, type: 3}
   musicianIconTemplateFromScene: {fileID: 5912701739643709433}
-  defaultSongTitle: Untitled Jam
-  defaultTheme: Instrumental
-  defaultPartLabel: Part A
   inspirationRoot: {fileID: 1311070525941500419}
   inspirationText: {fileID: 7178724656682583374}
   plusInspirationText: {fileID: 3235815966889626433}
@@ -586,6 +584,11 @@ MonoBehaviour:
   fxConfig: {fileID: 11400000, guid: 081226bfdcc5eaa4398070a850d15198, type: 2}
   stripDriver: {fileID: 258449390308053763}
   useLogs: 0
+  inspirationPopColor: {r: 1, g: 0.82, b: 0.2, a: 1}
+  inspirationPopCappedColor: {r: 0.75, g: 0.75, b: 0.75, a: 1}
+  inspirationPopSeconds: 1.1
+  inspirationPopRise: 70
+  inspirationPopScale: 1.6
 --- !u!114 &258449390308053763
 MonoBehaviour:
   m_ObjectHideFlags: 0

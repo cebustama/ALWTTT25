@@ -136,6 +136,7 @@ namespace ALWTTT.UI
             else if (cardChanged && !suppressFx && !data.placeholder) PlayReplaceFlash();
 
             _lastLevel = data.placeholder ? -1 : Mathf.Max(1, data.level);
+            RefreshEntryMark();   // [S10]
         }
 
         private void ApplyEmpty()
@@ -412,7 +413,51 @@ namespace ALWTTT.UI
 
         public void OnPointerExit(PointerEventData eventData) => HideHover();
 
-        private void OnDisable() => HideHover();
+        private void OnDisable()
+        {
+            HideHover();
+            TrackEntryMarks.Changed -= RefreshEntryMark;   // [S10]
+        }
+
+        #region [S10] Entry marks (playtest 26-nov, colour only)
+        // Outline colour, no text (the badge text read badly over the stage):
+        //   orange (the combo colour of the readout and the dialog links) = this row is part
+        //          of a combo the loop will pay, whether it entered now or was already playing;
+        //   cyan   = this row enters this loop, no combo.
+        // Built at runtime: no prefab change.
+        private static readonly Color EntryColor = new Color(0.45f, 0.85f, 1f, 1f);
+        private static readonly Color ComboColor = new Color(0xF0 / 255f, 0x78 / 255f, 0x18 / 255f, 1f);
+        private Outline _markOutline;
+
+        private void OnEnable()
+        {
+            TrackEntryMarks.Changed += RefreshEntryMark;
+            RefreshEntryMark();
+        }
+
+        private void RefreshEntryMark()
+        {
+            bool real = _hasData && !_data.placeholder && !string.IsNullOrEmpty(_data.musicianId);
+            bool combo = real && TrackEntryMarks.ComboOf(_data.musicianId) != null;
+            bool entering = real && TrackEntryMarks.IsEntering(_data.musicianId);
+
+            if (!combo && !entering)
+            {
+                if (_markOutline) _markOutline.enabled = false;
+                return;
+            }
+            if (pillImage == null) return;
+            if (_markOutline == null)
+            {
+                // Only ever our own Outline: a prefab one would be clobbered.
+                if (pillImage.GetComponent<Outline>() != null) return;
+                _markOutline = pillImage.gameObject.AddComponent<Outline>();
+                _markOutline.effectDistance = new Vector2(3f, -3f);
+            }
+            _markOutline.effectColor = combo ? ComboColor : EntryColor;
+            _markOutline.enabled = true;
+        }
+        #endregion
 
         private void HideHover()
         {

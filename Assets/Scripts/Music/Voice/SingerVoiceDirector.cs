@@ -194,8 +194,12 @@ namespace ALWTTT.Music.Voice
                 return;
             }
 
-            _lastLoopCtx = ctx;        // [SONG-TAIL-1] what the tail re-sings
-            _hasLastLoopCtx = true;
+            // [S10] The tail re-sings the last loop WITHOUT a solo (see MidiMusicManager).
+            if (_tailHost == null || !_tailHost.NextPlayIsSolo)
+            {
+                _lastLoopCtx = ctx;    // [SONG-TAIL-1] what the tail re-sings
+                _hasLastLoopCtx = true;
+            }
             ArmForLoop(ctx);
         }
 

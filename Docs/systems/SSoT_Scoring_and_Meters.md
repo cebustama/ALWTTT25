@@ -187,6 +187,15 @@ Capas (D2):  hypeDelta × LayersMultiplierStep^(cadena − 1)    solo si hypeDel
 - **Logs** `[COMBOS-1] PREVIEW combo: «…» | carta manos=[…] entra=… cadena=… mult=…`, `PAGO: … ΔHype=…`,
   `Absorción: «…» vuela al Big Num`, `Capas: loop con entrada nueva, cadena = N`, `CONTORNO: …`.
 
+**Regla revisada (S10, 2026-11-26, playtest de Claudio).** Sustituye a «pareja que entra completa»:
+
+- **Pareja**: al final del loop suenan los dos, **entró al menos uno** de los dos en este loop **y no entró nadie más**. Ejemplo: la batería ya
+  sonaba y entra el bajo → SECCIÓN RÍTMICA; si en ese mismo loop entra también el piano, se pierde.
+- **¡Toda la banda!**: suenan todos y no sonaban todos al empezar el loop (los cuatro a la vez por primera vez en la canción), sin exigir que
+  entren juntos. **Si se completa, no se cuentan parejas** (antes daba pareja + banda).
+- Código: `GigManager.EvaluateCombos` (`ComboEval.Entering`), `TryPair`. Las filas de pista se marcan con contorno celeste (entra) y naranja
+  (forma combo, también el compañero que ya sonaba) vía `TrackEntryMarks`. Pendiente en POST-DEMO C2: combos de tres y combos mejorables.
+
 ---
 
 ## 4. SongHype

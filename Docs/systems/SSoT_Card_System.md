@@ -646,6 +646,14 @@ Presentación solamente: la verdad de dominio sigue en el payload (§3.2), el co
   la demo.
 - **Fuera:** la vista de clic derecho (§10.3) sigue con su diseño viejo (CARTAS-ARTE-2).
 
+#### 10.4.2 Efecto al jugar una composición (S10, D16 = A)
+
+- **Levántate** (`starter_rise_up`) aplica Cautivado ×1 al **primer Alto** no convencido: objetivo nuevo
+  `ActionTargetType.AudienceTall` (= 100), resuelto en `CardBase.DetermineTargets` (log `[S10] Efecto al Alto`).
+- La cara de una composición no muestra efectos; por eso su tooltip añade un recuadro **«Al jugarla»** (`ui_card_on_play`) con las líneas
+  de `CardEffectDescriptionBuilder` (`tgt_audience_tall` = «el primer Alto»). El tooltip de carta del tutorial las lista también.
+- La identidad propia de cada carta (D17) sigue en POST-DEMO C10.
+
 ### 10.5 Playability display — single source of truth (CARD-UX-1, 2026-07-13)
 
 A card in hand that cannot be played is covered by a **red unplayable overlay**. The overlay

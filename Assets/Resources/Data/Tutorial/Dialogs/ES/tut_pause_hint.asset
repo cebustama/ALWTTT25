@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e631fe99ddcdaca4c953ce2afe40356d, type: 3}
+  m_Name: tut_pause_hint
+  m_EditorClassIdentifier: Assembly-CSharp::ALWTTT.Tutorial.TutorialDialogSO
+  triggerId: tut_pause_hint
+  priority: 66
+  category: 0
+  revisitTitle: Pausa
+  portrait: {fileID: 0}
+  pages:
+  - "\xBFTe falta tiempo para leer las cartas? Pulsa <b>Espacio</b> cuando quieras:
+    la m\xFAsica y el p\xFAblico se detienen y puedes mirar tu mano con calma. <b>Espacio</b>
+    otra vez y todo sigue."
+  highlightKey: 
+  mechanicText: "\xBFTe falta tiempo para leer las cartas? Pulsa <b>Espacio</b> cuando
+    quieras: la m\xFAsica y el p\xFAblico se detienen y puedes mirar tu mano con
+    calma. <b>Espacio</b> otra vez y todo sigue."

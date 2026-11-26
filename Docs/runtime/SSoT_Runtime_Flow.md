@@ -273,6 +273,13 @@ changes neither `CurrentGigPhase` nor `_session`.
 
 ---
 
+#### Pausa con Espacio y SFX de pausa (S10, 2026-11-26)
+
+- **Espacio** (D9) pausa como el menú (tiempo, música, loops) pero deja la mano inspeccionable: hover y tooltips (`PauseGate.InspectOnly`).
+- **SFX**: `PauseMenuController` toca `pauseSfx` al pausar y `resumeSfx` al reanudar (scratch y su reversa) por una `AudioSource` propia con
+  `AudioLowPassFilter`; volumen = `pauseSfxVolume` × barra de Efectos; `pauseSfxPitch` acelera; los clips se precargan en `Start`.
+  Log `[S10] SFX de pausa: … | vol … | paso bajo … Hz | velocidad x…`.
+
 ## 5. Card entry points into runtime
 
 ### 5.1 Action cards

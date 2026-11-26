@@ -71,6 +71,23 @@ MonoBehaviour:
     description: "Intensidad acumulada de la canci\xF3n. Al final se convierte en
       da\xF1o de Vibe a todo el p\xFAblico; cruzar umbrales sube los efectos del
       escenario."
+  - id: stamina
+    displayName: Aguante
+    description: "La resistencia de un m\xFAsico: la barra verde sobre \xE9l. El <link=stress>Stress</link>
+      la baja; a cero, <link=breakdown>Colapso</link>."
+  - id: combo_layers
+    displayName: Capas
+    description: "Cada loop seguido en que entra al menos un m\xFAsico nuevo multiplica
+      lo que suena: \xD71,5 el segundo, \xD72,25 el tercero\u2026 y dura toda la canci\xF3n."
+  - id: combo_rhythm_section
+    displayName: "Secci\xF3n r\xEDtmica"
+    description: "Combo: bater\xEDa (ritmo) y bajo suenan juntos en un loop en el que entr\xF3 al menos uno de los dos y nadie m\xE1s. +2 a la Vibe de ese loop (el n\xFAmero de arriba a la derecha)."
+  - id: combo_media_luz
+    displayName: A media luz
+    description: "Combo: acompa\xF1amiento (acordes) y melod\xEDa suenan juntos en un loop en el que entr\xF3 al menos uno de los dos y nadie m\xE1s. +2 a la Vibe de ese loop."
+  - id: combo_full_band
+    displayName: "\xA1Toda la banda!"
+    description: "Combo: los cuatro m\xFAsicos suenan a la vez por primera vez en la canci\xF3n. +3 a la Vibe de ese loop."
   - id: inspiration
     displayName: "Inspiraci\xF3n"
     description: El recurso que paga las cartas. Se concede al final de cada loop.
@@ -507,6 +524,10 @@ MonoBehaviour:
     text: "todo el p\xFAblico"
   - id: tgt_random_audience
     text: un espectador al azar
+  - id: ui_card_on_play
+    text: Al jugarla
+  - id: tgt_audience_tall
+    text: el primer <link=tall>Alto</link>
   - id: ui_card_kind_track
     text: Pista
   - id: ui_card_kind_part
@@ -879,6 +900,8 @@ MonoBehaviour:
     text: No hay ninguna parte sonando en bucle.
   - id: ui_unplayable_finishertiming
     text: "Ahora no: el Finisher se juega en el \xFAltimo loop de la canci\xF3n."
+  - id: ui_unplayable_oneperloop
+    text: "Tutorial: en esta canci\xF3n entra una composici\xF3n por loop. Esta, en el pr\xF3ximo loop."
   - id: ui_gig_play_button
     text: Tocar
   - id: ui_unplayable_budget_action
