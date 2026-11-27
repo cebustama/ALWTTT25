@@ -14,6 +14,24 @@ doc updates). Cosmetic / grammar / formatting-only edits are not logged here.
 
 ---
 
+## 2026-11-27 — WH-1a en el Banco de cartas: fila Line Planner, receta `lines=` y material de prueba por script
+
+**Qué cambió (editor, operacional).**
+- **Banco de cartas** (`CardBenchWindow`): fila **Line Planner** en las cartas de acordes y clave de receta
+  `lines=off|on|top|double|seconds|root|low|card`. `noseconds` se lee como `on`, porque desde las pruebas «sin segundas»
+  es el valor por defecto. Activa el planificador de líneas de MidiGenPlay (WH-1a) para ese render,
+  sobre una copia del preset de voicing de la carta. A y B se renderizan juntos con recetas distintas.
+- **Script de sesión** `Assets/Scripts/Editor/WH1a_LineasTool.cs` (*ALWTTT ▸ Sesiones ▸ WH-1a ▸ Preparar pruebas de líneas*):
+  crea 7 progresiones de prueba en `Assets/Dev/TestCards/WH1a/` y marca Adopt Progression Tonality en TEST Chords.
+- **Documentado** en `systems/SSoT_Editor_Authoring_Tools.md` §25, que recoge el formato de recetas del Banco por primera vez
+  en este repo. La receta de las pruebas en el juego está en `MidiGenPlay/Documentation~/reference/receta-pruebas-de-oido.md`.
+- **Comprobado en Unity** (Claudio): el Banco compila, `lines=` y `lines=low` suenan, y la suite de MidiGenPlay está en verde.
+- **Resultados de las pruebas:** `MidiGenPlay/Documentation~/research/2026-11-26-wh1a-pruebas/resultados-juego-2026-11-27.md`.
+  El modo todavía no está encendido en ninguna carta del juego. Para encenderlo, marca Line Mode en
+  `Resources/Data/Settings/MGP_VoiceLeadingConfig`, que es el preset de Core Major, Core Minor y Modal.
+
+---
+
 ## 2026-11-26 — S10 ALINEACIÓN-2 + TUTORIAL: la demo se aprende jugando y se juega con cualquier formación (DEMO-1211, orden 10)
 
 **Qué cambió (implemented semantics + operational).**

@@ -2382,3 +2382,25 @@ from the legacy slots' bounds), assigns `GigManager.bandStageLayout`, Undo-able.
   within an editor frame) and **«.wav»** (the voice alone, 32-bit float). Log `[VOZ-3] Banco ▶ con voz: …`.
   The bench itself (render of part A with the gig's chain, A/B columns, byte parity with a gig dump) is documented on the
   MidiGenPlay side (MGP-BENCH-1); this SSoT only records the ALWTTT voice layer.
+
+## 25. Card Bench recipes and the Line Planner row (WH-1a, 2026-11-27)
+
+- **Recipes («📥 Pegar receta», `CardBenchWindow.PasteRecipe`)** are the way an A/B test is set up in the bench: one recipe
+  per column, pasted, then «Renderizar las dos» and «⇄ Alternar A/B». Lines in any order, `#` starts a comment:
+  `clear` (empties the column: cards, lineup, BPM) · `bench seed= bpm= pattern= progression=` · `chords …` · `bass …` ·
+  `melody card= who=`. A `chords` / `bass` line adds TEST_Chords to Sibi / TEST_Bass to Conito when the column has no card of
+  that role (`card=` and `who=` override). Everything a recipe sets is a per-render override on a clone of the card's bundle
+  (`ApplyBundleOverrides`); the card assets are never written. The 📋 next to each track copies the recipe of what was heard
+  (`Recipe()`).
+- **Line Planner row** (chord cards, under Chord Expression) and recipe key **`lines=off|on|top|double|seconds|root|low|card`**:
+  the MidiGenPlay line planner (WH-1a, `VoiceLeadingConfig.lineMode` and its options) for this render, on a clone of the
+  card's `voiceLeadingOverride` (or the MGP Config's `voiceLeading` when the card has none). `on` = the defaults (no
+  seconds since 2026-11-27), `top` = anchor on top, `double` = anchor doubled, `seconds` = seconds next to the anchor,
+  `root` = the piano keeps the root, `low` = one octave lower. The old `noseconds` is read as `on`. The render
+  notes say «… y líneas on (solo este render)». `Recipe()` writes `lines=` only when the planner is on, so older recipes
+  stay identical.
+- **Session test material by script:** progressions and patterns for an in-game test are created by a re-runnable editor
+  script under *ALWTTT ▸ Sesiones ▸ <session> ▸ …* into `Assets/Dev/TestCards/<session>/` (WH-1a:
+  `Assets/Scripts/Editor/WH1a_LineasTool.cs`, 7 progressions + Adopt Progression Tonality on TEST Chords). The test sheet
+  (one card per test with the A and B recipes, what to listen for, ✓ ~ ✗) follows
+  `MidiGenPlay/Documentation~/reference/receta-pruebas-de-oido.md` §«Segunda fase».

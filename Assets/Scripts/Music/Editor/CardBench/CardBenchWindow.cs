@@ -81,10 +81,19 @@ namespace ALWTTT.Music.EditorTools
             // [MUSICA-1c] recipe «inst=Acoustic Bass»: the track's instrument for this
             // render (MIDIInstrumentSO asset name, spaces ignored). "" = the card's.
             public string forcedInstrument = "";
+            // [WH-1a, MidiGenPlay line planner] chord cards: the line planner for this
+            // render, on a copy of the card's VoiceLeadingConfig (recipe «lines=on»).
+            // -1 = the card; 0 off; 1 on; 2 on + anchor on top; 3 on + doubled anchor;
+            // 4 on, no seconds; 5 on + root kept.
+            public int lineMode = -1;
             public bool showAccentBlock;
             public bool accentCustom;
             public AccentFollowSettings accentBlock;
         }
+        // [WH-1a] Slot.lineMode + 1 → popup label and recipe token (lines=…).
+        // «on» = defaults (no seconds since 2026-11-27); «seconds» allows them; «low» plans an octave lower.
+        private static readonly string[] LineNames = { "(la carta)", "off", "on", "top", "double", "seconds", "root", "low" };
+
         [Serializable]
         private class Column
         {
@@ -782,7 +791,7 @@ namespace ALWTTT.Music.EditorTools
             var backing = BundleOf<BackingCardConfigSO>(card, TrackRole.Backing);
             var bass = backing == null ? BundleOf<BasslineCardConfigSO>(card, TrackRole.Bassline) : null;
             if (backing == null && bass == null)
-            { slot.accentMode = -1; slot.chordExpression = -1; slot.forcedProgressionGuid = ""; return; }
+            { slot.accentMode = -1; slot.chordExpression = -1; slot.forcedProgressionGuid = ""; slot.lineMode = -1; return; }
 
             // Escucha de acentos
             var cardMode = backing != null
@@ -805,7 +814,7 @@ namespace ALWTTT.Music.EditorTools
             if (backing == null)
             {
                 // [Claudio 2026-11-20] bass: Chord Expression and Arpeggio Tone Mode too.
-                slot.arpeggioRate = -1; slot.forcedProgressionGuid = "";
+                slot.arpeggioRate = -1; slot.forcedProgressionGuid = ""; slot.lineMode = -1;
                 slot.chordExpression = EnumRow("Chord Expression", slot.chordExpression, bass.chordExpression);
                 slot.bassTone = EnumRow("Arpeggio Tone Mode", slot.bassTone, bass.arpeggioToneMode);
                 // [MUSICA-1b, MGP-ARTIC-SCHED-3] the bass reads the same schedule.
@@ -848,6 +857,20 @@ namespace ALWTTT.Music.EditorTools
                     slot.arpeggioRate = nsel == 0 ? -1 : values[nsel - 1];
                 }
             else slot.arpeggioRate = -1;
+
+            // [WH-1a] Line Planner (MidiGenPlay): off / on / variants, only for this render.
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.Space(94);
+                EditorGUILayout.LabelField("Line Planner", EditorStyles.miniLabel, GUILayout.Width(100));
+                var cardVl = backing.voiceLeadingOverride != null ? backing.voiceLeadingOverride
+                           : _config != null ? _config.voiceLeading : null;
+                var labels = LineNames.ToArray();
+                labels[0] = $"(la carta: {(cardVl != null && cardVl.enableVoiceLeading && cardVl.lineMode ? "on" : "off")})";
+                int nsel = EditorGUILayout.Popup(new GUIContent("", "Planificador de líneas (WH-1a) solo para este render. " +
+                    "Receta: lines=off | on | top | double | seconds | root | low."), slot.lineMode + 1, labels);
+                slot.lineMode = nsel - 1;
+            }
 
             // [MUSICA-1b] Articulation Schedule: only the Random figure reads it.
             if (figure == ChordExpressionType.Random)
@@ -1032,7 +1055,8 @@ namespace ALWTTT.Music.EditorTools
                                        slot.phraseTechnique < 0 && slot.phraseSnare < 0 &&
                                        slot.phraseDead < 0 && slot.phraseSeed < 0 &&
                                        string.IsNullOrEmpty(slot.paletteVariant) &&
-                                       string.IsNullOrEmpty(slot.forcedInstrument))) continue;
+                                       string.IsNullOrEmpty(slot.forcedInstrument) &&
+                                       slot.lineMode < 0)) continue;
 
                 TrackRole role;
                 if (BundleOf<BackingCardConfigSO>(card, TrackRole.Backing) != null) role = TrackRole.Backing;
@@ -1090,6 +1114,30 @@ namespace ALWTTT.Music.EditorTools
                     {
                         bc.chordExpression = (ChordExpressionType)slot.chordExpression;
                         parts.Add($"figura {bc.chordExpression}");
+                    }
+                    // [WH-1a] line planner on a copy of the card's voicing preset
+                    // (or the MGP Config's when the card has none).
+                    if (slot.lineMode >= 0)
+                    {
+                        var baseVl = bc.voiceLeadingOverride != null ? bc.voiceLeadingOverride
+                                   : _config != null ? _config.voiceLeading : null;
+                        if (baseVl == null) info.Add($"⚠ «{card.DisplayName}»: sin VoiceLeadingConfig, Line Planner ignorado.");
+                        else
+                        {
+                            var vl = UnityEngine.Object.Instantiate(baseVl);
+                            vl.name = baseVl.name;
+                            vl.hideFlags = HideFlags.HideAndDontSave;
+                            clones.Add(vl);
+                            if (slot.lineMode > 0) vl.enableVoiceLeading = true;
+                            vl.lineMode = slot.lineMode > 0;
+                            vl.lineAnchorOnTop = slot.lineMode == 2;
+                            vl.lineDoubleAnchor = slot.lineMode == 3;
+                            vl.lineAllowSeconds = slot.lineMode == 4;
+                            vl.lineKeepRoot = slot.lineMode == 5;
+                            vl.lineLowRegister = slot.lineMode == 6;
+                            bc.voiceLeadingOverride = vl;
+                            parts.Add($"líneas {LineNames[slot.lineMode + 1]}");
+                        }
                     }
                     // [MUSICA-1b] bar-plan schedule (the package only reads it under Random)
                     if (slot.articSchedule >= 0)
@@ -1242,6 +1290,12 @@ namespace ALWTTT.Music.EditorTools
             {
                 sb.Append($" expr={bc.chordExpression}");
                 if (bc.chordExpression.ToString().StartsWith("Arpeggio")) sb.Append($" rate={bc.arpeggioRate}");
+                // [WH-1a] only when the line planner is on (older recipes stay identical).
+                var vl = bc.voiceLeadingOverride;
+                if (vl != null && vl.enableVoiceLeading && vl.lineMode)
+                    sb.Append(" lines=").Append(vl.lineAnchorOnTop ? "top" : vl.lineDoubleAnchor ? "double"
+                        : vl.lineAllowSeconds ? "seconds" : vl.lineKeepRoot ? "root"
+                        : vl.lineLowRegister ? "low" : "on");
                 if (bc.chordExpression == ChordExpressionType.Random)
                 {
                     sb.Append($" sched={bc.articulationSchedule}");
@@ -1412,6 +1466,16 @@ namespace ALWTTT.Music.EditorTools
                 { if (Enum.TryParse<BasslineCardConfigSO.BassArpeggioToneMode>(to, true, out var tm)) target.bassTone = (int)tm; else bad.Add("tone"); }
                 if (Get("expr") is string ex)
                 { if (Enum.TryParse<ChordExpressionType>(ex, true, out var e)) target.chordExpression = (int)e; else bad.Add("expr"); }
+                // [WH-1a] lines=off | on | top | double | seconds | root | low | card
+                // (noseconds = on: no seconds is the default since 2026-11-27; old recipes keep working)
+                if (chords && Get("lines") is string li)
+                {
+                    int k = Array.FindIndex(LineNames, n => n.Equals(li, StringComparison.OrdinalIgnoreCase));
+                    if (li.Equals("card", StringComparison.OrdinalIgnoreCase)) target.lineMode = -1;
+                    else if (li.Equals("noseconds", StringComparison.OrdinalIgnoreCase)) target.lineMode = 1;
+                    else if (k > 0) target.lineMode = k - 1;
+                    else bad.Add("lines");
+                }
                 if (chords && Get("rate") is string ra)
                 { if (Enum.TryParse<ArpeggioRate>(ra, true, out var r)) target.arpeggioRate = (int)r; else bad.Add("rate"); }
                 // [MUSICA-1b] sched=HoldThenTurn phrase=4 | sched=AlternateBars every=2
