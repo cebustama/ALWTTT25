@@ -25,3 +25,14 @@
 - **Qué es:** *Cross Overs* (1996) pide sonar un sonido hasta que sea palabra y una palabra hasta que sea sonido; el *toning* sostiene una vocal todo un aliento.
 - 💡 **Uso posible aquí (después de la demo):** un modo de Zig que pase del zigués sin sentido a sílabas que casi son palabras y vuelta, en el Taller de melodías; el *toning* como modo de voz. Y *Sound Cycles* (sola, en diálogo, juntos) como tres maneras de que la banda se escuche, ya en la cola de MidiGenPlay.
 - **Estado:** semilla.
+
+## 2026-11-28 · 33 standards de jazz: lecciones que podrían ser cartas
+- **Tipo y origen:** vídeo (Learn Jazz Standards, «I Ranked EVERY Jazz Standard You Need to Know», https://youtu.be/zu1dTdB2-Ic). Nota principal: [Music Lab](../../../../Music%20Lab/Repertorio/2026-11-28-standards-de-jazz-candidatos.md); en el motor: [MidiGenPlay](../../../../MidiGenPlay/MidiGenPlay/Documentation~/research/2026-11-capturas.md) (misma fecha).
+- **Lo que dijo Claudio:** «registrar que queremos aprender de ellos para MidiGenPlay y ALWTTT».
+- **Qué es:** 33 standards clasificados por las lecciones de armonía que sirven para otros temas (ii–V, backdoor, disminuido de paso, rhythm changes, modal).
+- 💡 **Uso posible aquí (después de la demo):**
+  - **Cartas de recurso armónico**, hermanas de **Jazz Funk**: «Puerta de atrás» (backdoor: resuelve sin tensión), «Rhythm Changes», «Vamp modal», «Pasos de Coltrane». Cada una toca la regla, no la canción.
+  - **La curva de aprendizaje del vídeo como progresión del mazo:** primero el ii–V, después el backdoor y el disminuido, al final *Giant Steps*. La banda «aprende» recursos como un músico.
+  - **Público que reconoce standards:** un público de club de jazz que premia lo familiar (rhythm changes, ii–V) frente a otro que premia la sorpresa. Enlaza con Cheung 2019 y Daikoku y Tanaka, más arriba.
+  - **Grooves** para gigs de club: bossa, 6/8, swing rápido.
+- **Estado:** semilla. Después de la demo; no cambia el foco (S11).
